@@ -1,0 +1,2896 @@
+<!DOCTYPE html>
+<html lang="uz" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muborak tuman ixtisoslashtirilgan maktab platformasi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#080b14',
+                        cardBg: '#131929',
+                        cardInner: '#1a2236',
+                        accentBlue: '#3b82f6',
+                        accentIndigo: '#5b54fa',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- SheetJS for Excel (.xlsx/.xls/.csv) import & export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #080b14; color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        .glow-blue { box-shadow: 0 0 28px rgba(59, 130, 246, 0.32); }
+        .glow-emerald { box-shadow: 0 0 25px rgba(16, 185, 129, 0.25); }
+        .glow-card { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #080b14; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .step-animate { animation: fadeSlideUp 0.22s ease-out forwards; }
+        @keyframes scanLine {
+            0% { top: 8%; }
+            50% { top: 88%; }
+            100% { top: 8%; }
+        }
+        .qr-laser { position: absolute; left: 6%; right: 6%; height: 3px; background: linear-gradient(90deg, transparent, #10b981, #34d399, transparent); box-shadow: 0 0 12px #10b981; animation: scanLine 2.2s infinite ease-in-out; }
+    </style>
+</head>
+<body class="bg-darkBg text-slate-100 min-h-screen flex justify-center items-start sm:items-center p-0 sm:py-3 select-none">
+
+    <!-- Mobile Telegram WebApp Container -->
+    <div id="app-container" class="w-full sm:max-w-[430px] min-h-screen sm:min-h-[860px] sm:max-h-[94vh] sm:rounded-[34px] bg-darkBg border-0 sm:border border-slate-800/90 flex flex-col relative shadow-2xl overflow-hidden">
+
+        <!-- ========================================================================= -->
+        <!-- 1. BOSQICHMA-BOSQICH RO'YXATDAN O'TISH OYNASI (ONBOARDING) -->
+        <!-- ========================================================================= -->
+        <div id="onboarding-screen" class="flex-1 flex flex-col justify-center p-5 z-40 bg-darkBg overflow-y-auto">
+
+            <!-- STEP 0: FAQAT RO'YXATDAN O'TISH (ORTIQCHA YOZUVLARSIZ) -->
+            <div id="step-0" class="flex-1 flex flex-col items-center justify-center text-center px-2 step-animate">
+                <div class="w-24 h-24 rounded-[28px] bg-gradient-to-tr from-blue-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white text-4xl shadow-2xl shadow-blue-600/40 border border-blue-400/30 mb-7">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <h1 class="text-2xl font-extrabold text-white leading-snug max-w-xs">
+                    Muborak tuman ixtisoslashtirilgan maktab platformasi
+                </h1>
+
+                <div class="w-full mt-10">
+                    <button type="button" onclick="goToOnboardingStep(1)" class="w-full py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.99] text-white font-extrabold rounded-2xl text-sm shadow-xl transition flex items-center justify-center space-x-2.5 glow-blue">
+                        <span>🚀 START (Ro'yxatdan o'tish)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 1: STATUSINGIZNI TANLANG -->
+            <div id="step-1" class="hidden flex-1 flex flex-col justify-between py-2 step-animate">
+                <div class="space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3.5">
+                        <button type="button" onclick="goToOnboardingStep(0)" class="px-3 py-1.5 rounded-xl bg-cardBg hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-800">⬅️ Orqaga</button>
+                        <span class="text-xs font-bold text-blue-400 bg-blue-500/15 border border-blue-500/30 px-3 py-1 rounded-xl">1-qadam / 5</span>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-extrabold text-white">1-qadam: Statusingizni tanlang</h2>
+                        <p class="text-xs text-slate-400 mt-1">Platformadan kim sifatida foydalanasiz?</p>
+                    </div>
+                    <div class="space-y-3">
+                        <div onclick="selectRole('student')" id="role-card-student" class="p-4 rounded-2xl border-2 border-blue-500 bg-blue-600/15 cursor-pointer flex items-center space-x-3.5 relative transition">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-2xl shrink-0">🎓</div>
+                            <h3 class="text-base font-extrabold text-white">O‘quvchi</h3>
+                            <i id="role-check-student" class="fa-solid fa-circle-check text-blue-400 text-lg absolute right-4"></i>
+                        </div>
+                        <div onclick="selectRole('parent')" id="role-card-parent" class="p-4 rounded-2xl border border-slate-800 bg-cardBg cursor-pointer flex items-center space-x-3.5 relative transition">
+                            <div class="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-2xl shrink-0">👨‍👩‍👧‍👦</div>
+                            <h3 class="text-base font-extrabold text-white">Ota-ona</h3>
+                            <i id="role-check-parent" class="fa-regular fa-circle text-slate-600 text-lg absolute right-4"></i>
+                        </div>
+                        <div onclick="selectRole('teacher')" id="role-card-teacher" class="p-4 rounded-2xl border border-slate-800 bg-cardBg cursor-pointer flex items-center space-x-3.5 relative transition">
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl shrink-0">👨‍🏫</div>
+                            <h3 class="text-base font-extrabold text-white">O‘qituvchi</h3>
+                            <i id="role-check-teacher" class="fa-regular fa-circle text-slate-600 text-lg absolute right-4"></i>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="openAdminPinModal()" class="w-full py-3 px-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-bold flex items-center justify-between transition">
+                        <span>🔒 Admin panel (Excel baza va Bot Token)</span>
+                        <i class="fa-solid fa-lock text-xs text-amber-400"></i>
+                    </button>
+                </div>
+                <div class="pt-6">
+                    <button type="button" onclick="goToOnboardingStep(2)" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold rounded-2xl text-sm shadow-lg">Davom etish ➡️</button>
+                </div>
+            </div>
+
+            <!-- STEP 2: MAJBURIY KANALGA OBUNA VA O'QUV PAPKASI -->
+            <div id="step-2" class="hidden flex-1 flex flex-col justify-between py-2 step-animate">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3.5">
+                        <button type="button" onclick="goToOnboardingStep(1)" class="px-3 py-1.5 rounded-xl bg-cardBg text-slate-300 text-xs font-semibold border border-slate-800">⬅️ Orqaga</button>
+                        <span class="text-xs font-bold text-blue-400 bg-blue-500/15 border border-blue-500/30 px-3 py-1 rounded-xl">2-qadam / 5</span>
+                    </div>
+                    <div class="text-center pt-1">
+                        <div class="w-16 h-16 rounded-2xl bg-sky-500/15 border border-sky-500/30 text-sky-400 flex items-center justify-center text-3xl mx-auto mb-3">
+                            <i class="fa-brands fa-telegram"></i>
+                        </div>
+                        <h2 class="text-lg font-extrabold text-white">Majburiy kanalga obuna</h2>
+                        <p class="text-xs text-slate-400 mt-1">Platformadan foydalanish uchun botga bog‘langan rasmiy maktab kanaliga a’zo bo‘lish shart.</p>
+                    </div>
+                    <div class="bg-cardBg p-4 rounded-2xl border border-sky-500/40 space-y-3">
+                        <div class="flex items-center justify-between text-xs">
+                            <div class="flex items-center space-x-3 min-w-0">
+                                <span class="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0"><i class="fa-solid fa-bullhorn"></i></span>
+                                <div class="min-w-0">
+                                    <p class="font-bold text-white truncate">Muborak IM Rasmiy Kanali</p>
+                                    <p id="mandatory-channel-handle" class="text-[11px] font-mono text-sky-400 truncate">@muborak_im_kanali</p>
+                                </div>
+                            </div>
+                            <span id="channel-sub-badge" class="px-2 py-1 rounded-lg bg-rose-500/15 text-rose-300 text-[10px] font-extrabold shrink-0">A'zo emas</span>
+                        </div>
+
+                        <a id="mandatory-channel-link" href="https://t.me/muborak_im_kanali" target="_blank" rel="noopener noreferrer" onclick="markChannelVisited()" class="w-full py-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs flex items-center justify-center space-x-2 transition">
+                            <i class="fa-brands fa-telegram text-sm"></i>
+                            <span>1. Kanalga a'zo bo'lish</span>
+                        </a>
+
+                        <div class="pt-1 border-t border-slate-800 space-y-1.5">
+                            <label for="onboard-tg-id" class="text-[10px] text-slate-400 block">Jonli bot tekshiruvi uchun Telegram ID (ixtiyoriy):</label>
+                            <input type="text" id="onboard-tg-id" placeholder="Masalan: 123456789 (@userinfobot dan)" class="w-full bg-darkBg border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500">
+                        </div>
+                    </div>
+                    <div id="channel-error-box" class="hidden p-3 rounded-xl bg-rose-950/70 border border-rose-500/40 text-rose-300 text-xs font-semibold text-center">
+                        ⚠️ Avval yuqoridagi «Kanalga a'zo bo'lish» tugmasini bosib kanalga qo'shiling!
+                    </div>
+                </div>
+                <div class="pt-4 space-y-2">
+                    <button type="button" onclick="verifyMandatoryChannelAndContinue()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold rounded-2xl text-sm shadow-lg flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>2. A'zolikni tekshirish va davom etish</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 3: TELEFON RAQAM -->
+            <div id="step-3" class="hidden flex-1 flex flex-col justify-between py-2 step-animate">
+                <div class="space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3.5">
+                        <button type="button" onclick="goToOnboardingStep(2)" class="px-3 py-1.5 rounded-xl bg-cardBg text-slate-300 text-xs font-semibold border border-slate-800">⬅️ Orqaga</button>
+                        <span class="text-xs font-bold text-blue-400 bg-blue-500/15 border border-blue-500/30 px-3 py-1 rounded-xl">3-qadam / 5</span>
+                    </div>
+                    <div class="text-center pt-2">
+                        <div class="w-16 h-16 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-3xl mx-auto mb-3">
+                            <i class="fa-solid fa-phone-volume"></i>
+                        </div>
+                        <h2 class="text-lg font-extrabold text-white">Telefon raqam</h2>
+                        <p class="text-xs text-slate-400 mt-1">Shaxsingizni tasdiqlash uchun Telegram raqamingizni ulashing.</p>
+                    </div>
+                    <div class="space-y-3">
+                        <input type="tel" id="onboard-phone" value="+998 99 560 21 06" class="w-full bg-cardBg border border-slate-700 rounded-2xl p-4 text-center font-mono text-base font-bold text-white focus:outline-none focus:border-blue-500">
+                        <button type="button" onclick="sharePhone()" class="w-full py-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center space-x-2">
+                            <i class="fa-brands fa-telegram text-base"></i>
+                            <span>Raqamni yuborish (Telegram orqali)</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="pt-6">
+                    <button type="button" onclick="goToOnboardingStep(4)" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold rounded-2xl text-sm shadow-lg">Davom etish ➡️</button>
+                </div>
+            </div>
+
+            <!-- STEP 4: SINF / FAN TANLASH VA JSHSHIR ORQALI BAZADAN RASM BILAN CHIQARISH -->
+            <div id="step-4" class="hidden flex-1 flex flex-col justify-between py-2 step-animate">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                        <button type="button" onclick="goToOnboardingStep(3)" class="px-3 py-1.5 rounded-xl bg-cardBg text-slate-300 text-xs font-semibold border border-slate-800">⬅️ Orqaga</button>
+                        <span class="text-xs font-bold text-blue-400 bg-blue-500/15 border border-blue-500/30 px-3 py-1 rounded-xl">4-qadam / 5</span>
+                    </div>
+
+                    <!-- A) O'QUVCHI BO'LIMI -->
+                    <div id="step4-student-box" class="space-y-3.5">
+                        <div>
+                            <h2 class="text-base font-extrabold text-white">Sinf, F.I.Sh. va JSHSHIR</h2>
+                            <p class="text-[11px] text-slate-400">JSHSHIR kiritilganda bazadan o'quvchi rasmi bilan chiqadi</p>
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-slate-400 font-semibold block mb-1.5">1. Sinfni belgilang:</label>
+                            <div id="student-class-list" class="grid grid-cols-4 gap-1.5"></div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[11px] text-slate-400 font-semibold block">2. Ism-familiya va 14 xonali JSHSHIR:</label>
+                            <input type="text" id="student-fullname-input" placeholder="Ism va familiyangizni yozing" oninput="lookupStudentByJshshir()" class="w-full bg-cardBg border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            <input type="text" id="student-jshshir-input" maxlength="14" placeholder="14 xonali JSHSHIR (masalan: 51205112620014)" oninput="lookupStudentByJshshir()" class="w-full bg-cardBg border border-slate-700 rounded-xl px-3.5 py-2.5 text-center font-mono text-sm tracking-widest text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-400 mb-1.5">⚡ Sinov uchun sinfdagi o'quvchilardan birini bosing:</p>
+                            <div id="student-quick-picks" class="flex flex-wrap gap-1.5"></div>
+                        </div>
+                        <div id="matched-student-card" class="hidden bg-gradient-to-br from-emerald-950/60 to-cardBg border-2 border-emerald-500/60 rounded-2xl p-3.5 glow-emerald"></div>
+                    </div>
+
+                    <!-- B) OTA-ONA BO'LIMI -->
+                    <div id="step4-parent-box" class="hidden space-y-3.5">
+                        <div>
+                            <h2 class="text-base font-extrabold text-white">Farzandlaringizni belgilang</h2>
+                            <p class="text-[11px] text-slate-400">Bir nechta sinf va bir nechta farzandni tanlashingiz mumkin</p>
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-slate-400 font-semibold block mb-1.5">1. Farzandlaringiz o'qiydigan sinflarni belgilang:</label>
+                            <div id="parent-class-list" class="grid grid-cols-4 gap-1.5"></div>
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-slate-400 font-semibold block mb-1.5">2. Shu sinflardagi farzandlaringizni tanlang:</label>
+                            <div id="parent-children-list" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
+                        </div>
+                    </div>
+
+                    <!-- C) O'QITUVCHI BO'LIMI -->
+                    <div id="step4-teacher-box" class="hidden space-y-3.5">
+                        <div>
+                            <h2 class="text-base font-extrabold text-white">O‘qituvchi identifikatsiyasi</h2>
+                            <p class="text-[11px] text-slate-400">Fan yo'nalishi va 14 xonali JSHSHIR raqamingiz</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1.5" id="teacher-subject-list"></div>
+                        <input type="text" id="teacher-jshshir-input" maxlength="14" value="31106962620031" class="w-full bg-cardBg border border-slate-700 rounded-xl p-3 text-center font-mono text-sm tracking-widest text-white">
+                        <div class="bg-gradient-to-br from-blue-950/60 to-cardBg border border-blue-500/50 rounded-2xl p-3.5 flex items-center space-x-3">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&auto=format&fit=crop&q=80" class="w-14 h-14 rounded-2xl object-cover border-2 border-blue-400 shrink-0" alt="Teacher">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">MIBB Bazadan topildi</span>
+                                <h4 class="text-sm font-extrabold text-white mt-1">Sobirov Shohjahon Ochil o'g'li</h4>
+                                <p class="text-[11px] text-slate-300" id="teacher-selected-subj-label">Fizika fani o'qituvchisi • JSHSHIR: 31106962620031</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="button" onclick="validateStep4AndContinue()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold rounded-2xl text-sm shadow-lg">Tasdiqlash va davom etish ➡️</button>
+                </div>
+            </div>
+
+            <!-- STEP 5: OFERTA SHARTLARI -->
+            <div id="step-5" class="hidden flex-1 flex flex-col justify-between py-2 step-animate">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3.5">
+                        <button type="button" onclick="goToOnboardingStep(4)" class="px-3 py-1.5 rounded-xl bg-cardBg text-slate-300 text-xs font-semibold border border-slate-800">⬅️ Orqaga</button>
+                        <span class="text-xs font-bold text-blue-400 bg-blue-500/15 border border-blue-500/30 px-3 py-1 rounded-xl">5-qadam / 5</span>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-extrabold text-white">Oferta</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Shaxsga doir ma'lumotlarni qayta ishlash roziligi</p>
+                    </div>
+                    <div class="h-44 overflow-y-auto bg-cardBg p-3.5 rounded-2xl text-xs text-slate-300 border border-slate-800 leading-relaxed space-y-2">
+                        <p><strong>Qayta ishlanadigan ma'lumotlar:</strong> F.I.Sh., JSHSHIR identifikatori, davomat («Kirish» va «Chiqish» vaqti hamda joylashuvi), baholar va topshiriq natijalari.</p>
+                        <p>Ushbu ma'lumotlar faqat Muborak tuman ixtisoslashtirilgan maktabida o'quv jarayonini tashkil etish, ishtirokni hisobga olish, ota-onalarni xabardor qilish hamda ta'lim boshqaruvi organlariga belgilangan hisobotlarni taqdim etish maqsadida qayta ishlanadi.</p>
+                        <p>Ular qonunchilikda belgilangan muddat davomida saqlanadi va uchinchi shaxslarga berilmaydi.</p>
+                    </div>
+                    <label class="flex items-start space-x-3 bg-cardBg p-3.5 rounded-2xl border border-slate-800 cursor-pointer">
+                        <input type="checkbox" id="oferta-checkbox" checked class="mt-0.5 w-4 h-4 text-blue-600 rounded">
+                        <span class="text-xs text-slate-200 leading-snug">Matn bilan to'liq tanishdim, barcha shartlarga hamda shaxsga doir ma'lumotlarimni qayta ishlashga roziman.</span>
+                    </label>
+                </div>
+                <div class="pt-6">
+                    <button type="button" onclick="completeOnboarding()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold rounded-2xl text-sm shadow-lg glow-blue">
+                        ✅ Ofertani qabul qilish
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- 2. ASOSIY KABINET (BARCHA 6 TA PASTKI TUGMA TO'LIQ ISHLAYDI) -->
+        <!-- ========================================================================= -->
+        <div id="main-dashboard" class="hidden flex-1 flex flex-col h-full overflow-hidden bg-darkBg">
+
+            <!-- Yuqori profil satri -->
+            <header class="bg-[#0e1424]/95 px-3.5 py-2.5 border-b border-slate-800/90 flex items-center justify-between z-30 shrink-0">
+                <div class="flex items-center space-x-2.5 min-w-0">
+                    <img id="header-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" class="w-10 h-10 rounded-full object-cover border-2 border-blue-500 shrink-0" alt="User">
+                    <div class="min-w-0">
+                        <h1 id="header-name" class="text-xs font-extrabold text-white truncate">Sobirov Shohjahon</h1>
+                        <p id="header-sub" class="text-[10px] text-slate-400 truncate">Fizika fani o'qituvchisi</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-1.5 shrink-0">
+                    <button type="button" onclick="openBotSettingsModal()" title="Telegram Bot sozlamalari" class="px-2 py-1 rounded-full bg-sky-500/15 border border-sky-500/40 text-[10px] font-bold text-sky-300 flex items-center space-x-1">
+                        <i class="fa-brands fa-telegram"></i>
+                        <span id="header-bot-status">Bot</span>
+                    </button>
+                    <button type="button" onclick="resetToOnboarding()" title="Rolni o'zgartirish" class="px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold border border-slate-700">
+                        Chiqish
+                    </button>
+                </div>
+            </header>
+
+            <!-- Ota-ona uchun farzandlarni almashtirish qatori -->
+            <div id="parent-child-switcher" class="hidden bg-[#12192b] px-3.5 py-2 border-b border-slate-800 flex items-center space-x-2 overflow-x-auto shrink-0"></div>
+
+            <!-- Asosiy skroll bo'ladigan kontent oynasi -->
+            <main id="main-scroll-area" class="flex-1 overflow-y-auto p-3.5 space-y-4 pb-24">
+
+                <!-- =============================================================== -->
+                <!-- TAB 1: ASOSIY (O'quvchi / Ota-ona / O'qituvchi uchun moslashuvchan) -->
+                <!-- =============================================================== -->
+                <section id="tab-view-asosiy" class="space-y-4 step-animate">
+
+                    <!-- C) O'QITUVCHI MAXSUS BOSHQARUV PANELI (Role = teacher bo'lganda TEPADA ko'rinadi) -->
+                    <div id="asosiy-teacher-view" class="hidden space-y-4">
+                        <div class="bg-gradient-to-br from-emerald-950/60 via-cardBg to-cardBg border border-emerald-500/40 rounded-3xl p-4 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300">👨‍🏫 O'qituvchi Boshqaruv Paneli</span>
+                                <span class="text-xs font-mono text-white" id="teacher-total-students-badge">4 o'quvchi</span>
+                            </div>
+                            <h3 class="text-sm font-extrabold text-white">1-para: Amaliy mashg'ulotlar va laboratoriya tajribalari</h3>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" onclick="openClassroomQrProjector()" class="py-3 px-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold rounded-2xl text-[11px] shadow-lg flex items-center justify-center space-x-1.5">
+                                    <i class="fa-solid fa-qrcode"></i>
+                                    <span>QR Kod (10 daq)</span>
+                                </button>
+                                <button type="button" onclick="openBotSettingsModal()" class="py-3 px-2.5 bg-sky-600/20 border border-sky-500/40 text-sky-300 font-extrabold rounded-2xl text-[11px] flex items-center justify-center space-x-1.5">
+                                    <i class="fa-brands fa-telegram"></i>
+                                    <span>Bot Token Ulash</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- EXCEL ORQALI BAZANI BIRDAN YUKLASH -->
+                        <div class="bg-cardBg border border-blue-500/30 rounded-2xl p-4 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-blue-300">📊 Exceldan bazani birdan yuklash</h4>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">O'quvchi va ota-ona Telegram ID larini bitta faylda kiriting</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" onclick="downloadExcelTemplate()" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[11px] font-bold flex items-center justify-center space-x-1.5">
+                                    <i class="fa-solid fa-file-arrow-down text-emerald-400"></i>
+                                    <span>Namuna Excel</span>
+                                </button>
+                                <label class="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-extrabold flex items-center justify-center space-x-1.5 cursor-pointer">
+                                    <i class="fa-solid fa-file-excel"></i>
+                                    <span>Excel yuklash</span>
+                                    <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImport(this)">
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- SINF O'QUVCHILARINI BAHOLASH (O'QUVCHI VA OTA-ONAGA BOT XABARI) -->
+                        <div class="bg-cardBg border border-slate-800 rounded-2xl p-4 space-y-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-300">⭐ Baholash (Bot xabari bilan)</h4>
+                                <select id="teacher-grade-subject" class="bg-[#0e1424] border border-slate-700 rounded-xl px-2.5 py-1 text-[11px] font-bold text-white">
+                                    <option value="Fizika">Fizika</option>
+                                    <option value="Matematika">Matematika</option>
+                                    <option value="Informatika">Informatika</option>
+                                    <option value="Kimyo">Kimyo</option>
+                                    <option value="Ingliz tili">Ingliz tili</option>
+                                </select>
+                            </div>
+                            <p class="text-[11px] text-slate-400">Baho bosilganda o'quvchiga ham, ota-onaga ham Telegram botdan avtomatik xabar ketadi.</p>
+                            <div id="teacher-roster-list" class="space-y-2.5"></div>
+                        </div>
+
+                        <!-- BOTDAN KETGAN OXIRGI XABARLAR -->
+                        <div class="bg-cardBg border border-sky-500/30 rounded-2xl p-4 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-xs font-extrabold uppercase tracking-wider text-sky-300">📲 Botdan yuborilgan xabarlar</h4>
+                                <span id="bot-log-count" class="text-[10px] font-mono text-slate-400">0 ta</span>
+                            </div>
+                            <div id="teacher-bot-log" class="space-y-2 max-h-52 overflow-y-auto pr-1 text-xs"></div>
+                        </div>
+
+                        <!-- CHORAKLIK ISH REJA, TAQDIMOT VA MA'RUZA YUKLASH -->
+                        <div class="bg-cardBg border border-indigo-500/30 rounded-2xl p-4 space-y-3">
+                            <div>
+                                <h4 class="text-xs font-extrabold uppercase tracking-wider text-indigo-300">📚 O'quv materiallarini yuklash</h4>
+                                <p class="text-[11px] text-slate-400 mt-0.5">Choraklik ish reja, taqdimot va ma'ruzalarni joylang — o'quvchilar "Fanlar" bo'limida ochib foydalanadi.</p>
+                            </div>
+                            <form id="teacher-material-form" onsubmit="handleTeacherMaterialUpload(event)" class="space-y-2.5">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <select id="tmat-type" class="bg-[#0e1424] border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white font-semibold">
+                                        <option value="Choraklik ish reja">Choraklik ish reja</option>
+                                        <option value="Taqdimot">Taqdimot (Slayd)</option>
+                                        <option value="Ma'ruza">Ma'ruza (Konspekt)</option>
+                                    </select>
+                                    <select id="tmat-subject" class="bg-[#0e1424] border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white font-semibold">
+                                        <option value="Fizika">Fizika</option>
+                                        <option value="Matematika">Matematika</option>
+                                        <option value="Informatika">Informatika</option>
+                                        <option value="Kimyo">Kimyo</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <select id="tmat-class" class="bg-[#0e1424] border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white font-semibold">
+                                        <option value="8-A">8-A sinf</option>
+                                        <option value="9-A">9-A sinf</option>
+                                        <option value="10-A">10-A sinf</option>
+                                        <option value="11-A">11-A sinf</option>
+                                        <option value="Barcha sinflar">Barcha sinflar</option>
+                                    </select>
+                                    <select id="tmat-quarter" class="bg-[#0e1424] border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white font-semibold">
+                                        <option value="1-chorak">1-chorak</option>
+                                        <option value="2-chorak" selected>2-chorak</option>
+                                        <option value="3-chorak">3-chorak</option>
+                                        <option value="4-chorak">4-chorak</option>
+                                    </select>
+                                </div>
+                                <input type="text" id="tmat-title" required placeholder="Mavzu yoki hujjat nomi (masalan: 2-chorak ish rejasi)" class="w-full bg-[#0e1424] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                                <input type="file" id="tmat-file" accept=".pdf,.ppt,.pptx,.doc,.docx,.xlsx,.txt" class="w-full text-[11px] text-slate-300 file:mr-2 file:py-1.5 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-600/30 file:text-indigo-200 bg-[#0e1424] border border-slate-700 rounded-xl p-1">
+                                <textarea id="tmat-content" rows="3" placeholder="Ma'ruza matni yoki qisqacha mazmun (o'quvchi to'g'ridan-to'g'ri ochib o'qishi uchun)..." class="w-full bg-[#0e1424] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"></textarea>
+                                <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-extrabold text-xs shadow-lg">
+                                    📤 O'quvchilar uchun portalga joylash
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- A) O'QUVCHI VA O'QITUVCHI ASOSIY DAVOMAT BLOKI -->
+                    <div id="asosiy-student-view" class="space-y-4">
+
+                        <!-- PDF holatlarini 1 bosishda sinab ko'rish paneli -->
+                        <div class="bg-cardBg border border-slate-800 rounded-2xl p-2.5">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-blue-400">⚡ PDF Holatlarni sinash (Simulyator):</span>
+                                <span id="sim-mode-label" class="text-[10px] text-emerald-400 font-semibold">08:50 Kirish ochiq</span>
+                            </div>
+                            <div class="grid grid-cols-4 gap-1.5">
+                                <button type="button" onclick="setAttendanceSimState('open_enter')" class="py-1.5 px-1 rounded-xl bg-blue-600/20 border border-blue-500/40 text-[10px] font-bold text-blue-300 hover:bg-blue-600/30">🟢 08:50 Kirish</button>
+                                <button type="button" onclick="setAttendanceSimState('outside')" class="py-1.5 px-1 rounded-xl bg-amber-600/20 border border-amber-500/40 text-[10px] font-bold text-amber-300 hover:bg-amber-600/30">📍 334m Uzoqda</button>
+                                <button type="button" onclick="setAttendanceSimState('open_exit')" class="py-1.5 px-1 rounded-xl bg-purple-600/20 border border-purple-500/40 text-[10px] font-bold text-purple-300 hover:bg-purple-600/30">🟣 10:24 Chiqish</button>
+                                <button type="button" onclick="openBlockedOverlay()" class="py-1.5 px-1 rounded-xl bg-rose-600/20 border border-rose-500/40 text-[10px] font-bold text-rose-300 hover:bg-rose-600/30">⛔ 18/18 Blok</button>
+                            </div>
+                        </div>
+
+                        <!-- Katta Soat, Joylashuv va Kirish/Chiqish Kartasi -->
+                        <div class="bg-gradient-to-b from-[#172038] to-cardBg border border-slate-800/90 rounded-[26px] p-4 space-y-3.5 glow-card">
+                            <div class="flex items-end justify-between">
+                                <div>
+                                    <div id="live-big-clock" class="text-4xl font-extrabold text-white tracking-tight">08:50</div>
+                                    <p class="text-xs text-slate-300 mt-1">Chorshanba, 18 noyabr</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">HOZIRGI DARS</span>
+                                    <span id="current-para-status" class="text-base font-extrabold text-white mt-0.5 block">10' → 1-para</span>
+                                </div>
+                            </div>
+
+                            <!-- Joylashuv satri -->
+                            <div id="location-status-bar" class="bg-[#101729] rounded-2xl p-3 border border-slate-700/80 flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <span id="loc-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                                    <div>
+                                        <p id="loc-title" class="text-xs font-bold text-emerald-400">A-korpus ichida</p>
+                                        <p id="loc-coords" class="text-[10px] text-slate-400 font-mono mt-0.5">41.354334, 69.214239 • ±10m • 08:50:12 (#10)</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <i id="loc-check-icon" class="fa-solid fa-check text-emerald-400 text-xs"></i>
+                                    <button type="button" onclick="refreshGpsStatus()" class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs">
+                                        <i class="fa-solid fa-arrows-rotate"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Kirish va Chiqish tugmalari -->
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <button type="button" id="btn-main-kirish" onclick="handleAttendanceAction('kirish')" class="p-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-sky-500 text-white flex items-center space-x-3 text-left shadow-lg transition active:scale-[0.98]">
+                                    <div class="w-9 h-9 rounded-full border-2 border-white/80 flex items-center justify-center shrink-0">
+                                        <i id="kirish-btn-icon" class="fa-solid fa-arrow-right-to-bracket text-sm"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-sm font-extrabold leading-tight">Kirish</div>
+                                        <div id="kirish-btn-sub" class="text-[11px] text-blue-100 font-mono truncate mt-0.5">19:59</div>
+                                    </div>
+                                </button>
+
+                                <button type="button" id="btn-main-chiqish" onclick="handleAttendanceAction('chiqish')" class="p-3.5 rounded-2xl bg-[#161e31] border border-slate-800 text-slate-400 flex items-center space-x-3 text-left transition active:scale-[0.98]">
+                                    <div class="w-9 h-9 rounded-full border border-slate-600 flex items-center justify-center shrink-0">
+                                        <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-sm font-extrabold text-slate-200 leading-tight">Chiqish</div>
+                                        <div id="chiqish-btn-sub" class="text-[11px] text-slate-400 font-mono truncate mt-0.5">10:20 da</div>
+                                    </div>
+                                </button>
+                            </div>
+
+                            <!-- Binodan uzoqda bo'lganda chiqadigan qizil ogohlantirish -->
+                            <div id="outside-warning-banner" class="hidden py-2 px-3 rounded-xl bg-rose-950/80 border border-rose-500/40 text-rose-300 text-xs font-semibold text-center">
+                                <i class="fa-solid fa-location-dot mr-1.5"></i> A-korpus binosidan 334m uzoqdasiz
+                            </div>
+
+                            <!-- Vaqt chizig'i -->
+                            <div class="bg-[#0e1424] rounded-2xl p-3 border border-slate-800/80">
+                                <div class="flex justify-between text-[10px] text-slate-400 font-mono mb-1.5">
+                                    <span>08:50 Kirish</span>
+                                    <span>Dars 09:00–10:20</span>
+                                    <span>10:20–10:30 Chiqish</span>
+                                </div>
+                                <div class="grid grid-cols-3 gap-1.5 text-center">
+                                    <div class="py-1.5 px-2 rounded-lg bg-blue-600/30 border border-blue-500/50 text-[10px] font-bold text-blue-300">
+                                        Kirish (10 daq)
+                                    </div>
+                                    <div class="py-1.5 px-2 rounded-lg bg-slate-800 text-[10px] font-semibold text-slate-300">
+                                        Dars jarayoni
+                                    </div>
+                                    <div class="py-1.5 px-2 rounded-lg bg-purple-600/30 border border-purple-500/50 text-[10px] font-bold text-purple-300">
+                                        Chiqish (10 daq)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tezkor kirish: O'qituvchi yuklagan ish reja, taqdimot va ma'ruzalar -->
+                        <div onclick="switchMainTab('fanlar')" class="bg-gradient-to-r from-indigo-950/80 to-cardBg border border-indigo-500/40 rounded-2xl p-4 cursor-pointer transition flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-folder-open"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-extrabold text-white">Ish reja, Taqdimot va Ma'ruzalar</h3>
+                                    <p class="text-[11px] text-slate-300" id="quick-materials-count">O'qituvchi yuklagan 3 ta material ochiq</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-indigo-400 text-xs"></i>
+                        </div>
+
+                        <!-- 3 ta Statistika Kartochkasi -->
+                        <div class="grid grid-cols-3 gap-2.5">
+                            <div class="bg-cardBg border border-slate-800/90 rounded-2xl p-3.5">
+                                <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xs mb-2">
+                                    <i class="fa-solid fa-check-double"></i>
+                                </div>
+                                <div id="stat-attended-hours" class="text-2xl font-extrabold text-white">66</div>
+                                <div class="text-[11px] text-slate-400 mt-0.5">Qatnashgan</div>
+                            </div>
+                            <div class="bg-cardBg border border-slate-800/90 rounded-2xl p-3.5">
+                                <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center text-xs mb-2">
+                                    <i class="fa-solid fa-clock"></i>
+                                </div>
+                                <div id="stat-missed-hours" class="text-2xl font-extrabold text-white">6</div>
+                                <div class="text-[11px] text-slate-400 mt-0.5">Qoldirilgan soat</div>
+                            </div>
+                            <div class="bg-cardBg border border-slate-800/90 rounded-2xl p-3.5">
+                                <div class="w-8 h-8 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center text-xs mb-2">
+                                    <i class="fa-solid fa-book-open"></i>
+                                </div>
+                                <div class="text-2xl font-extrabold text-white">72</div>
+                                <div class="text-[11px] text-slate-400 mt-0.5">Jami soat</div>
+                            </div>
+                        </div>
+
+                        <!-- Dars qoldirish chegarasi -->
+                        <div class="bg-cardBg border border-slate-800/90 rounded-2xl p-4 space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-bold text-white">Dars qoldirish chegarasi</span>
+                                <span id="limit-hours-label" class="font-bold text-slate-300">6 / 18 soat</span>
+                            </div>
+                            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                                <div id="limit-progress-bar" class="h-full bg-indigo-500 rounded-full transition-all" style="width: 33%"></div>
+                            </div>
+                            <p id="limit-warning-text" class="text-[11px] text-slate-400">Yana 12 soat dars qoldirilsa, profil bloklanadi</p>
+                        </div>
+
+                        <!-- Malaka ishi / Chorak oxiri qayta topshirish tezkor kartasi -->
+                        <div onclick="switchMainTab('malakam')" class="bg-cardBg hover:bg-cardInner border border-slate-800/90 rounded-2xl p-4 cursor-pointer transition space-y-2">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                                        <i class="fa-solid fa-graduation-cap"></i>
+                                    </div>
+                                    <span class="font-extrabold text-sm text-white">Malaka ishi va Qayta topshirish</span>
+                                    <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300">MIKRODARS</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-slate-500 text-xs"></i>
+                            </div>
+                            <p class="text-xs text-slate-200 font-medium line-clamp-2">8-sinfda “Iste’molchilarni parallel ulash” mavzuni o‘qitishda PHET o‘quv vositasidan samarali foydalanish</p>
+                            <div class="flex items-center justify-between pt-1">
+                                <span class="text-[11px] text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check mr-1"></i>Mavzu tanlangan • Fayl yuklash ochiq</span>
+                                <span class="text-[10px] text-amber-400 font-mono">4 kun qoldi</span>
+                            </div>
+                        </div>
+
+                        <!-- O'quv davri progress kartasi -->
+                        <div class="bg-cardBg border border-slate-800/90 rounded-2xl p-4 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-extrabold text-white">Noyabr</span>
+                                <span class="text-xs font-extrabold text-indigo-400">57%</span>
+                            </div>
+                            <div class="flex justify-between text-[11px] text-slate-400 font-mono">
+                                <span>02.11.2026</span>
+                                <span>30.11.2026</span>
+                            </div>
+                            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                                <div class="h-full bg-indigo-500 rounded-full" style="width: 57%"></div>
+                            </div>
+                            <div class="flex justify-between text-[11px] text-slate-400 pt-1">
+                                <span>O'tgan: <strong class="text-slate-200">16 kun</strong></span>
+                                <span>Qolgan: <strong class="text-slate-200">12 kun</strong></span>
+                                <span>Jami: <strong class="text-slate-200">28 kun</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Kunlik Dars Jadvali -->
+                        <div class="space-y-3 pt-1">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-base font-extrabold text-white">Dars jadvali</h3>
+                                <div class="flex items-center space-x-2">
+                                    <span id="schedule-selected-date-label" class="text-xs font-bold text-indigo-400">18.11.2026</span>
+                                    <button type="button" onclick="switchMainTab('fanlar')" class="w-8 h-8 rounded-xl bg-cardBg border border-slate-800 text-slate-300 flex items-center justify-center text-xs">
+                                        <i class="fa-regular fa-calendar"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="schedule-days-strip" class="grid grid-cols-7 gap-1 text-center"></div>
+                            <div id="schedule-lessons-container" class="space-y-3"></div>
+                        </div>
+                    </div>
+
+                    <!-- B) OTA-ONA MAXSUS NAZORAT PANELI -->
+                    <div id="asosiy-parent-view" class="hidden space-y-4">
+                        <div class="bg-gradient-to-br from-purple-950/60 via-cardBg to-cardBg border border-purple-500/40 rounded-3xl p-4 space-y-3.5 glow-card">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                    👨‍👩‍👧‍👦 Ota-ona jonli nazorati
+                                </span>
+                                <span class="text-xs font-mono text-emerald-400"><i class="fa-solid fa-satellite-dish mr-1"></i>Online</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <img id="parent-view-child-avatar" src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80" class="w-14 h-14 rounded-2xl object-cover border-2 border-purple-400" alt="Child">
+                                <div>
+                                    <h3 id="parent-view-child-name" class="text-base font-extrabold text-white">Yo'ldoshev Jo'rabek</h3>
+                                    <p id="parent-view-child-class" class="text-xs text-slate-300">8-A sinf • Muborak tuman IM</p>
+                                    <p class="text-[11px] text-emerald-400 font-semibold mt-0.5">📍 Hozir maktabda: A-korpus, 202-xona</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2.5 pt-1">
+                                <div class="bg-[#0e1424] p-3 rounded-2xl border border-emerald-500/30">
+                                    <span class="text-[10px] text-slate-400 block">📥 Maktabga kelgan vaqti</span>
+                                    <span class="text-lg font-extrabold text-emerald-400 font-mono">08:52</span>
+                                    <span class="text-[10px] text-slate-400 block mt-0.5">QR kod tasdiqlangan</span>
+                                </div>
+                                <div class="bg-[#0e1424] p-3 rounded-2xl border border-slate-800">
+                                    <span class="text-[10px] text-slate-400 block">📤 Maktabdan chiqish</span>
+                                    <span class="text-lg font-extrabold text-amber-400 font-mono">13:20 da</span>
+                                    <span class="text-[10px] text-slate-400 block mt-0.5">Kecha: 13:24 da qaytgan</span>
+                                </div>
+                            </div>
+
+                            <button type="button" onclick="simulateParentMissedAlert()" class="w-full py-3 rounded-2xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-300 text-xs font-extrabold transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-bell"></i>
+                                <span>Farzand darsga kirmasa keladigan Telegram xabarni sinash</span>
+                            </button>
+                        </div>
+
+                        <!-- Ota-onaga kelgan xabarnomalar tarixi -->
+                        <div class="bg-cardBg border border-slate-800 rounded-2xl p-4 space-y-3">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">📲 Telegram Bot Xabarnomalari</h4>
+                            <div id="parent-notifications-list" class="space-y-2.5 text-xs">
+                                <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-slate-200">
+                                    <div class="flex justify-between text-[10px] text-emerald-400 font-bold mb-1">
+                                        <span>✅ Maktabga kirish qayd etildi</span>
+                                        <span>Bugun, 08:52</span>
+                                    </div>
+                                    Farzandingiz <strong>Yo'ldoshev Jo'rabek</strong> 1-para (Fizika va laboratoriya) darsiga QR kod orqali kirdi.
+                                </div>
+                                <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/30 text-slate-200">
+                                    <div class="flex justify-between text-[10px] text-blue-400 font-bold mb-1">
+                                        <span>⭐ Yangi baho qo'yildi</span>
+                                        <span>Kecha, 11:45</span>
+                                    </div>
+                                    Matematika fanidan <strong>5 (a'lo)</strong> baho oldi. O'qituvchi: Malohat Ergasheva.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- =============================================================== -->
+                <!-- TAB 2: DAVOMAT -->
+                <!-- =============================================================== -->
+                <section id="tab-view-davomat" class="hidden space-y-4 step-animate">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-white">Davomat</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Noyabr oqimi • 02.11–30.11</p>
+                    </div>
+
+                    <div class="bg-gradient-to-b from-[#161f36] to-cardBg border border-slate-800/90 rounded-[28px] p-5 flex flex-col items-center space-y-5 glow-card">
+                        <div class="relative w-48 h-48 flex items-center justify-center">
+                            <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="#1e293b" stroke-width="11" />
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="url(#gradRing)" stroke-width="11" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="25" />
+                                <defs>
+                                    <linearGradient id="gradRing" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#38bdf8" />
+                                        <stop offset="100%" stop-color="#6366f1" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                <span id="davomat-ring-percent" class="text-4xl font-extrabold text-white">92%</span>
+                                <span class="text-xs text-slate-400 mt-1">ishtirok</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2.5 w-full text-center">
+                            <div class="bg-[#1b243b] border border-slate-700/60 rounded-2xl p-3">
+                                <div class="text-xl font-extrabold text-white">66</div>
+                                <div class="text-[11px] text-slate-400 mt-0.5">soat qatnashgan</div>
+                            </div>
+                            <div class="bg-[#1b243b] border border-slate-700/60 rounded-2xl p-3">
+                                <div class="text-xl font-extrabold text-rose-400">6</div>
+                                <div class="text-[11px] text-slate-400 mt-0.5">soat qoldirilgan</div>
+                            </div>
+                            <div class="bg-[#1b243b] border border-slate-700/60 rounded-2xl p-3">
+                                <div class="text-xl font-extrabold text-white">72</div>
+                                <div class="text-[11px] text-slate-400 mt-0.5">soat o'tildi</div>
+                            </div>
+                        </div>
+
+                        <div class="w-full bg-[#1b243b] border border-slate-700/60 rounded-2xl p-3.5 space-y-2">
+                            <div class="flex justify-between text-xs font-bold">
+                                <span class="text-white">Dars qoldirish chegarasi</span>
+                                <span class="text-rose-400">6 / 18 soat</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div class="h-full bg-rose-500 rounded-full" style="width: 33%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-base font-extrabold text-white">Haftalar kesimida</h3>
+                            <span class="text-xs text-slate-400">ustun — 1 para</span>
+                        </div>
+                        <div class="bg-cardBg border border-slate-800 rounded-[24px] p-4 space-y-3">
+                            <div class="grid grid-cols-7 gap-1.5 text-center text-xs font-bold text-slate-400 pl-12">
+                                <span>Du</span><span>Se</span><span>Ch</span><span>Pa</span><span>Ju</span><span>Sh</span>
+                            </div>
+                            <div id="weekly-matrix-rows" class="space-y-2.5"></div>
+                            <div class="flex items-center justify-center space-x-4 pt-2 border-t border-slate-800 text-[11px] text-slate-400">
+                                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 mr-1.5"></span>Qatnashgan</span>
+                                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-sky-300 mr-1.5"></span>Sababli</span>
+                                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 mr-1.5"></span>Qoldirilgan</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-cardBg border border-slate-800 rounded-2xl p-4 space-y-2.5">
+                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-300">📌 Davomat hisoblash qoidasi</h4>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                                <div class="font-bold text-white">Kirish ✓ &nbsp; Chiqish ✓</div>
+                                <div class="text-emerald-400 text-[11px] mt-0.5">To'liq qatnashgan</div>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30">
+                                <div class="font-bold text-white">Kirish ✓ &nbsp; Chiqish ✗</div>
+                                <div class="text-rose-400 text-[11px] mt-0.5">2 soat qoldirilgan</div>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30">
+                                <div class="font-bold text-white">Kirish ✗ &nbsp; Chiqish ✓</div>
+                                <div class="text-rose-400 text-[11px] mt-0.5">2 soat qoldirilgan</div>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                                <div class="font-bold text-white">Tasdiqlangan sabab</div>
+                                <div class="text-amber-300 text-[11px] mt-0.5">Qoldirilgan hisoblanmaydi</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- =============================================================== -->
+                <!-- TAB 3: AI YORDAMCHI -->
+                <!-- =============================================================== -->
+                <section id="tab-view-ai" class="hidden flex flex-col justify-between min-h-[68vh] space-y-4 step-animate">
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white text-lg shadow-lg">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-extrabold text-white">Muborak IM • Avloniy AI</h2>
+                                <p class="text-xs text-slate-400">Offline rejim • Ma'lumotlaringiz asosida</p>
+                            </div>
+                        </div>
+
+                        <div id="ai-chat-messages" class="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+                            <div class="bg-cardBg border border-slate-800 rounded-2xl p-4 text-sm text-slate-200 leading-relaxed space-y-3">
+                                <p>Assalomu alaykum! Men <strong>Avloniy AI</strong> yordamchiman. Sizning shaxsiy ma'lumotlaringiz asosida dars jadvali, ishtirok etish ko'rsatkichi, olgan baholaringiz, qoldirilgan darslar va o'quv materiallari bo'yicha javob beraman.</p>
+                                <p class="text-xs text-slate-400">Bu AI internet ishlatmaydi — barcha javoblar sahifadagi tayyor ma'lumotlardan olinadi.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="askAiAssistant('Umumiy holat')" class="px-3.5 py-2 rounded-full bg-cardBg hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200 transition">Umumiy holat</button>
+                            <button type="button" onclick="askAiAssistant('Bugungi darslar')" class="px-3.5 py-2 rounded-full bg-cardBg hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200 transition">Bugungi darslar</button>
+                            <button type="button" onclick="askAiAssistant('Hozirgi para')" class="px-3.5 py-2 rounded-full bg-cardBg hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200 transition">Hozirgi para</button>
+                            <button type="button" onclick="askAiAssistant('Ishtirok etish ko\'rsatkichim')" class="px-3.5 py-2 rounded-full bg-cardBg hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200 transition">Ishtirok etish ko'rsatkichim</button>
+                            <button type="button" onclick="askAiAssistant('Fanlar va baholarim')" class="px-3.5 py-2 rounded-full bg-cardBg hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200 transition">Fanlar</button>
+                            <button type="button" onclick="askAiAssistant('Malaka ishi va qayta topshirish')" class="px-3.5 py-2 rounded-full bg-cardBg hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200 transition">Malaka ishi</button>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <input type="text" id="ai-user-input" onkeydown="if(event.key==='Enter') sendCustomAiQuestion()" placeholder="Savol yozing..." class="flex-1 bg-cardBg border border-slate-700 rounded-full px-4 py-3.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                            <button type="button" onclick="sendCustomAiQuestion()" class="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center shrink-0 shadow-lg">
+                                <i class="fa-solid fa-arrow-up"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- =============================================================== -->
+                <!-- TAB 4: FANLAR JURNALI + O'QITUVCHI YUKLAGAN MATERIALLAR KUTUBXONASI -->
+                <!-- =============================================================== -->
+                <section id="tab-view-fanlar" class="hidden space-y-4 step-animate">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-extrabold text-white">Fanlar va Materiallar</h2>
+                            <p class="text-xs text-slate-400 mt-0.5">Ish rejalar, taqdimotlar, ma'ruzalar va baholar</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-extrabold">GPA: 4.85</span>
+                    </div>
+
+                    <!-- O'QITUVCHI YUKLAGAN MATERIALLAR (O'QUVCHI XOHLAGAN PAYT OCHIB FOYDALANADI) -->
+                    <div class="bg-cardBg border border-indigo-500/30 rounded-[24px] p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-extrabold text-white">📂 O'quv materiallari kutubxonasi</h3>
+                            <span id="library-total-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-indigo-500/20 text-indigo-300">3 ta fayl</span>
+                        </div>
+                        <div class="flex gap-1.5 overflow-x-auto pb-1">
+                            <button type="button" onclick="setMaterialFilter('Barchasi')" id="mflt-all" class="mflt-btn px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-indigo-600 text-white shrink-0">Barchasi</button>
+                            <button type="button" onclick="setMaterialFilter('Choraklik ish reja')" id="mflt-plan" class="mflt-btn px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-800 text-slate-300 shrink-0">Ish reja</button>
+                            <button type="button" onclick="setMaterialFilter('Taqdimot')" id="mflt-slide" class="mflt-btn px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-800 text-slate-300 shrink-0">Taqdimot</button>
+                            <button type="button" onclick="setMaterialFilter('Ma\'ruza')" id="mflt-lecture" class="mflt-btn px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-800 text-slate-300 shrink-0">Ma'ruza</button>
+                        </div>
+                        <div id="student-materials-list" class="space-y-2.5"></div>
+                    </div>
+
+                    <!-- 1-modul -->
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-2xl bg-indigo-600 text-white font-extrabold flex items-center justify-center text-base shadow">1</div>
+                            <div>
+                                <h3 class="text-base font-extrabold text-white">1–modul • Aniq va tabiiy fanlar</h3>
+                                <p class="text-xs text-slate-400">4 ta fan</p>
+                            </div>
+                        </div>
+
+                        <div id="fanlar-module-1" class="bg-cardBg border border-slate-800 rounded-[24px] divide-y divide-slate-800/90 overflow-hidden"></div>
+                    </div>
+
+                    <!-- 2-modul -->
+                    <div class="space-y-3 pt-2">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-2xl bg-blue-600 text-white font-extrabold flex items-center justify-center text-base shadow">2</div>
+                            <div>
+                                <h3 class="text-base font-extrabold text-white">2–modul • Zamonaviy ta'lim va STEAM</h3>
+                                <p class="text-xs text-slate-400">2 ta fan</p>
+                            </div>
+                        </div>
+
+                        <div id="fanlar-module-2" class="bg-cardBg border border-slate-800 rounded-[24px] divide-y divide-slate-800/90 overflow-hidden"></div>
+                    </div>
+                </section>
+
+                <!-- =============================================================== -->
+                <!-- TAB 5: MALAKAM / CHORAK OXIRI QAYTA TOPSHIRISH -->
+                <!-- =============================================================== -->
+                <section id="tab-view-malakam" class="hidden space-y-4 step-animate">
+                    <div class="grid grid-cols-2 gap-1.5 bg-cardBg p-1.5 rounded-2xl border border-slate-800">
+                        <button type="button" id="subtab-btn-mikrodars" onclick="switchMalakamSubtab('mikrodars')" class="py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-extrabold transition">
+                            📂 Qayta topshirish / Ish
+                        </button>
+                        <button type="button" id="subtab-btn-oneid" onclick="switchMalakamSubtab('oneid')" class="py-2.5 rounded-xl text-slate-400 hover:text-white text-xs font-extrabold transition">
+                            🌐 Malakam (OneID)
+                        </button>
+                    </div>
+
+                    <div id="malakam-mikrodars-pane" class="space-y-4">
+                        <div class="bg-cardBg border border-slate-800 rounded-[26px] p-4 space-y-3.5">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-graduation-cap"></i>
+                                </div>
+                                <span class="text-base font-extrabold text-white">Malaka ishi va Qarzdorlik</span>
+                                <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300">MIKRODARS</span>
+                            </div>
+
+                            <h3 class="text-sm font-bold text-white leading-relaxed">
+                                8–sinfda “Iste’molchilarni parallel ulash” mavzuni o‘qitishda PHET o‘quv vositasidan samarali foydalanish
+                            </h3>
+
+                            <div class="flex items-center space-x-2 text-xs text-emerald-400 font-semibold">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <span>Mavzu tanlangan</span>
+                            </div>
+
+                            <button type="button" onclick="openMezonlarModal()" class="w-full py-3 rounded-2xl bg-[#1c243d] hover:bg-indigo-950/60 border border-indigo-500/30 text-indigo-300 text-xs font-extrabold flex items-center justify-center space-x-2 transition">
+                                <i class="fa-solid fa-list-check"></i>
+                                <span>Mezonlar (Baholash talablari)</span>
+                            </button>
+
+                            <div class="space-y-2 pt-1">
+                                <p class="text-[11px] text-slate-400">Mavzu tanlash muddati</p>
+                                <div class="p-3 rounded-2xl bg-[#0e1320] border border-slate-800 flex items-center justify-between text-xs">
+                                    <span class="text-slate-300"><i class="fa-solid fa-lock text-rose-400 mr-2"></i>Mavzu tanlash yopilgan</span>
+                                    <span class="font-mono text-slate-400">13.11.2026 23:59</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <p class="text-[11px] text-slate-400">Chorak oxiri qayta topshirish va fayl yuklash muddati</p>
+                                <div class="p-3 rounded-2xl bg-[#0e1320] border border-emerald-500/30 flex items-center justify-between text-xs">
+                                    <span class="text-emerald-400 font-bold"><i class="fa-solid fa-cloud-arrow-up mr-1.5"></i>Fayl yuklash ochiq</span>
+                                    <span class="font-mono text-slate-300 text-[11px]">14.11.2026 — 22.11.2026</span>
+                                </div>
+                                <div class="p-3 rounded-2xl bg-[#0e1320] border border-amber-500/30 flex items-center space-x-2 text-xs text-amber-400 font-bold">
+                                    <i class="fa-regular fa-clock"></i>
+                                    <span>Yopilishiga: 4 kun 15 soat 10 daq 59 sek</span>
+                                </div>
+                            </div>
+
+                            <div id="uploaded-files-list" class="space-y-3 pt-2 border-t border-slate-800">
+                                <div class="space-y-2">
+                                    <div class="flex items-center space-x-2.5">
+                                        <span class="w-8 h-8 rounded-full bg-indigo-600/30 text-indigo-300 font-bold text-xs flex items-center justify-center">YJ</span>
+                                        <span class="text-xs font-bold text-white">Yo‘ldoshev Jo‘rabek G‘olibovich</span>
+                                    </div>
+                                    <div class="flex flex-wrap gap-1.5 pl-10">
+                                        <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold">📊 Taqdimot.pptx ✓</span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold">📄 Himoya_ishi.pdf ✓</span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold">📎 Qoshimcha_dars.docx ✓</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <label class="w-full py-3.5 rounded-2xl bg-emerald-950/80 hover:bg-emerald-900/70 border border-emerald-500/40 text-emerald-300 text-xs font-extrabold flex items-center justify-center space-x-2 cursor-pointer transition">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                                <span>Faylni o'zgartirish / Qoldirilgan dars vazifasini yuklash</span>
+                                <input type="file" class="hidden" onchange="handleElectronicFileUpload(this)">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="malakam-oneid-pane" class="hidden space-y-4">
+                        <div class="flex items-center space-x-2.5">
+                            <i class="fa-solid fa-globe text-indigo-400 text-lg"></i>
+                            <h2 class="text-xl font-extrabold text-white">Malakam</h2>
+                        </div>
+
+                        <div class="bg-cardBg border border-slate-800 rounded-[26px] p-4 space-y-4">
+                            <div class="flex items-center space-x-3.5">
+                                <img id="oneid-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" class="w-14 h-14 rounded-2xl object-cover border border-slate-700" alt="Avatar">
+                                <h3 id="oneid-fullname" class="text-base font-extrabold text-white leading-snug">Sobirov Shohjahon Ochil o'g'li</h3>
+                            </div>
+
+                            <div class="p-3 rounded-2xl bg-[#1a2035] border border-indigo-500/30 flex items-center justify-between">
+                                <span class="text-xs font-extrabold uppercase text-indigo-400">KIRISH</span>
+                                <span class="text-base font-extrabold text-white">OneID</span>
+                            </div>
+
+                            <div class="divide-y divide-slate-800/80 text-xs">
+                                <div class="py-2.5 flex justify-between">
+                                    <span class="text-slate-400">PINFL (JSHSHIR)</span>
+                                    <span id="oneid-pinfl" class="font-mono font-bold text-white">31106962620031</span>
+                                </div>
+                                <div class="py-2.5 flex justify-between">
+                                    <span class="text-slate-400">Pasport / Guvohnoma</span>
+                                    <span class="font-mono font-bold text-white">AE1767395</span>
+                                </div>
+                                <div class="py-2.5 flex justify-between">
+                                    <span class="text-slate-400">Tug'ilgan sana</span>
+                                    <span id="oneid-birth" class="font-mono font-bold text-white">1996-06-11</span>
+                                </div>
+                                <div class="py-2.5 flex justify-between">
+                                    <span class="text-slate-400">Viloyat</span>
+                                    <span class="font-bold text-white">Qashqadaryo viloyati</span>
+                                </div>
+                                <div class="py-2.5 flex justify-between">
+                                    <span class="text-slate-400">Tuman</span>
+                                    <span class="font-bold text-white">Muborak tumani</span>
+                                </div>
+                                <div class="py-2.5 flex justify-between items-start">
+                                    <span class="text-slate-400">Muassasa</span>
+                                    <span class="font-bold text-white text-right max-w-[200px]">Muborak tuman ixtisoslashtirilgan maktabi</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <button type="button" onclick="showToast('Sertifikatlar va faxriy yorliqlar ro\'yxati yuklandi!')" class="py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs flex items-center justify-center space-x-2 shadow-lg">
+                                <i class="fa-solid fa-award"></i>
+                                <span>Sertifikatlar</span>
+                            </button>
+                            <button type="button" onclick="showToast('OneID sessiyasi muvaffaqiyatli yangilandi!')" class="py-4 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-xs flex items-center justify-center space-x-2 shadow-lg">
+                                <i class="fa-solid fa-lock"></i>
+                                <span>OneID tiklash</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- =============================================================== -->
+                <!-- TAB 6: PROFIL (Lokatsiya, Bot Sozlamalari va Sozlamalar) -->
+                <!-- =============================================================== -->
+                <section id="tab-view-profil" class="hidden space-y-4 step-animate">
+                    <div class="bg-cardBg border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase text-slate-400">JSHSHIR</span>
+                            <div id="profil-jshshir" class="text-base font-mono font-extrabold text-white">31106962620031</div>
+                        </div>
+                        <span id="profil-role-badge" class="px-3 py-1 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs font-extrabold">Faol profil</span>
+                    </div>
+
+                    <!-- TELEGRAM BOT SOZLAMALARI KARTASI -->
+                    <div class="space-y-1.5">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-sky-400 px-1">TELEGRAM BOT</span>
+                        <button type="button" onclick="openBotSettingsModal()" class="w-full bg-cardBg hover:bg-cardInner border border-sky-500/40 rounded-2xl p-4 flex items-center justify-between transition text-left">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-lg">
+                                    <i class="fa-brands fa-telegram"></i>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-extrabold text-white block">Bot Token va sinov xabari</span>
+                                    <span id="profil-bot-status-text" class="text-xs text-slate-400">Simulyatsiya rejimi • Token ulash uchun bosing</span>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-sky-400 text-xs"></i>
+                        </button>
+                    </div>
+
+                    <!-- O'QUV DAVRI -->
+                    <div class="space-y-1.5">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1">O‘QUV DAVRI</span>
+                        <div class="bg-cardBg border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                                    <i class="fa-regular fa-calendar-check"></i>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-slate-400 block">Noyabr</span>
+                                    <span class="text-sm font-extrabold text-white">02.11.2026 — 30.11.2026</span>
+                                </div>
+                            </div>
+                            <span class="text-xs text-slate-400 font-semibold">12 kun</span>
+                        </div>
+                    </div>
+
+                    <!-- LOKATSIYA -->
+                    <div class="space-y-1.5">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1">LOKATSIYA</span>
+                        <div class="bg-cardBg border border-slate-800 rounded-[24px] divide-y divide-slate-800/80 overflow-hidden">
+                            <div class="p-3.5 flex items-center justify-between">
+                                <div class="flex items-center space-x-2.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                                    <span class="text-xs font-bold text-emerald-400">A-korpus ichida</span>
+                                </div>
+                                <button type="button" onclick="refreshGpsStatus()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-arrows-rotate"></i>
+                                </button>
+                            </div>
+                            <div class="p-3.5 flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-building"></i></div>
+                                    <div>
+                                        <div class="text-sm font-bold text-white">A-korpus</div>
+                                        <div class="text-xs text-slate-400">Radius: 100 m</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-bold text-emerald-400">23 m</div>
+                                    <div class="text-[11px] text-emerald-400">Ichida</div>
+                                </div>
+                            </div>
+                            <div class="p-3.5 flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-building"></i></div>
+                                    <div>
+                                        <div class="text-sm font-bold text-white">B-korpus</div>
+                                        <div class="text-xs text-slate-400">Radius: 100 m</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-bold text-emerald-400">85 m</div>
+                                    <div class="text-[11px] text-emerald-400">Ichida</div>
+                                </div>
+                            </div>
+                            <div class="p-3.5 flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center"><i class="fa-solid fa-flask"></i></div>
+                                    <div>
+                                        <div class="text-sm font-bold text-white">Steam laboratoriya</div>
+                                        <div class="text-xs text-slate-400">Radius: 50 m</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-bold text-rose-400">93 m</div>
+                                    <div class="text-[11px] text-rose-400">Tashqarida</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SOZLAMALAR -->
+                    <div class="space-y-1.5">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1">SOZLAMALAR</span>
+                        <div class="bg-cardBg border border-slate-800 rounded-[24px] divide-y divide-slate-800/80 overflow-hidden">
+                            <div class="p-3.5 flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center"><i class="fa-solid fa-sun"></i></div>
+                                    <span class="text-sm font-bold text-white">Tungi rejim</span>
+                                </div>
+                                <button type="button" onclick="showToast('Tungi rejim faol!')" class="w-12 h-7 rounded-full bg-indigo-600 p-1 flex justify-end items-center">
+                                    <span class="w-5 h-5 rounded-full bg-white"></span>
+                                </button>
+                            </div>
+                            <div class="p-3.5 flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center"><i class="fa-solid fa-language"></i></div>
+                                    <div>
+                                        <div class="text-[11px] text-slate-400">Til</div>
+                                        <div class="text-sm font-bold text-white">O‘zbek</div>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-xs font-bold text-slate-200 border border-slate-700">UZ</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+
+            <!-- =============================================================== -->
+            <!-- PASTKI NAVIGATSIYA PANELI (6 TA TUGMA) -->
+            <!-- =============================================================== -->
+            <nav class="bg-[#111728]/95 backdrop-blur-md border-t border-slate-800/90 px-2 py-1.5 grid grid-cols-6 gap-1 items-center absolute bottom-0 left-0 right-0 z-30">
+                <button type="button" id="nav-btn-asosiy" onclick="switchMainTab('asosiy')" class="flex flex-col items-center justify-center py-1.5 rounded-2xl bg-gradient-to-b from-blue-500 to-indigo-600 text-white shadow-md transition">
+                    <i class="fa-solid fa-house text-sm"></i>
+                    <span class="text-[10px] font-bold mt-1">Asosiy</span>
+                </button>
+                <button type="button" id="nav-btn-davomat" onclick="switchMainTab('davomat')" class="flex flex-col items-center justify-center py-1.5 rounded-2xl text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-chart-pie text-sm"></i>
+                    <span class="text-[10px] font-medium mt-1">Davomat</span>
+                </button>
+                <button type="button" id="nav-btn-ai" onclick="switchMainTab('ai')" class="flex flex-col items-center justify-center py-1.5 rounded-2xl text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                    <span class="text-[10px] font-medium mt-1">AI</span>
+                </button>
+                <button type="button" id="nav-btn-fanlar" onclick="switchMainTab('fanlar')" class="flex flex-col items-center justify-center py-1.5 rounded-2xl text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-book-open text-sm"></i>
+                    <span class="text-[10px] font-medium mt-1">Fanlar</span>
+                </button>
+                <button type="button" id="nav-btn-malakam" onclick="switchMainTab('malakam')" class="flex flex-col items-center justify-center py-1.5 rounded-2xl text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-globe text-sm"></i>
+                    <span class="text-[10px] font-medium mt-1">Malakam</span>
+                </button>
+                <button type="button" id="nav-btn-profil" onclick="switchMainTab('profil')" class="flex flex-col items-center justify-center py-1.5 rounded-2xl text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-user text-sm"></i>
+                    <span class="text-[10px] font-medium mt-1">Profil</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- 3. MAXSUS MODALLAR -->
+        <!-- ========================================================================= -->
+
+        <!-- A) TELEGRAM KAMERA QR SKANER MODALI -->
+        <div id="qr-scanner-modal" class="hidden fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-between p-6">
+            <div class="w-full flex items-center justify-between text-white">
+                <button type="button" onclick="closeQrScannerModal()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-lg">✕</button>
+                <span id="qr-modal-badge" class="text-xs font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full border border-emerald-500/40">10 daqiqalik oyna faol</span>
+                <div class="w-10"></div>
+            </div>
+
+            <div class="w-64 bg-gradient-to-b from-emerald-500 to-teal-700 rounded-3xl p-4 text-center shadow-2xl relative border-4 border-white/20">
+                <p class="text-[9px] font-extrabold uppercase tracking-wider text-white/90">MUBORAK TUMAN IXTISOSLASHTIRILGAN MAKTABI</p>
+                <h3 id="qr-poster-title" class="text-lg font-extrabold text-white mt-1 mb-3">DARSGA KIRISH</h3>
+                <div class="bg-white p-4 rounded-2xl mx-auto w-44 h-44 flex items-center justify-center relative overflow-hidden">
+                    <i class="fa-solid fa-qrcode text-8xl text-slate-900"></i>
+                    <div class="qr-laser"></div>
+                </div>
+                <p class="text-xs font-bold text-white mt-3">A-korpus • 202-xona</p>
+            </div>
+
+            <div class="w-full max-w-xs space-y-3 text-center">
+                <p id="qr-instruction-text" class="text-sm font-bold text-white">Kirish uchun xonadagi QR kodni skanerlang</p>
+                <button type="button" onclick="confirmQrScanSuccess()" class="w-full py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm shadow-xl">
+                    📸 QR kodni tasdiqlash (Skanerlash)
+                </button>
+            </div>
+        </div>
+
+        <!-- B) DARSNI BAHOLASH MODALI -->
+        <div id="lesson-rating-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+            <div class="bg-cardBg border border-slate-700 rounded-3xl w-full max-w-sm p-5 text-center space-y-4 step-animate">
+                <div class="w-12 h-12 rounded-full bg-indigo-600/30 text-indigo-300 font-extrabold text-base flex items-center justify-center mx-auto">ME</div>
+                <div>
+                    <h3 class="text-base font-extrabold text-white">Malohat Ergasheva</h3>
+                    <p class="text-xs text-slate-400">Zamonaviy ta'lim paradigmalari va fizika</p>
+                </div>
+                <p class="text-sm font-bold text-white">Darsni qanday baholaysiz?</p>
+                <div class="flex justify-center space-x-2 text-2xl text-amber-400">
+                    <button type="button" onclick="selectStarRating(1)">★</button>
+                    <button type="button" onclick="selectStarRating(2)">★</button>
+                    <button type="button" onclick="selectStarRating(3)">★</button>
+                    <button type="button" onclick="selectStarRating(4)">★</button>
+                    <button type="button" onclick="selectStarRating(5)">★</button>
+                </div>
+                <input type="text" placeholder="Izoh yozing (ixtiyoriy)..." class="w-full bg-[#0e1424] border border-slate-700 rounded-xl p-3 text-xs text-white focus:outline-none">
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" onclick="submitLessonRating()" class="py-3 rounded-xl bg-indigo-600 text-white font-extrabold text-xs">Yuborish</button>
+                    <button type="button" onclick="closeLessonRatingModal()" class="py-3 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs">Keyinroq</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- C) 18 SOAT PROFIL BLOKLANISHI OYNASI -->
+        <div id="blocked-profile-overlay" class="hidden fixed inset-0 bg-[#090c15] z-50 flex flex-col justify-between p-5 overflow-y-auto">
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-400 text-xs font-extrabold uppercase">CHEKLOV FAOL</span>
+                    <button type="button" onclick="closeBlockedOverlay()" class="px-3 py-1 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">✕ Yopish</button>
+                </div>
+
+                <div class="bg-cardBg border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-11 h-11 rounded-2xl bg-indigo-600 text-white font-extrabold flex items-center justify-center text-lg">Y</div>
+                        <div>
+                            <h3 class="text-sm font-extrabold text-white">Yo'ldoshev Jo'rabek</h3>
+                            <p class="text-xs text-slate-400">8-A sinf o'quvchisi</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-extrabold text-rose-500">18</div>
+                        <div class="text-[9px] uppercase font-bold text-slate-400">SOAT QOLDIRILGAN</div>
+                    </div>
+                </div>
+
+                <div class="bg-rose-950/50 border border-rose-500/40 rounded-2xl p-4 space-y-1">
+                    <span class="text-[10px] font-extrabold uppercase text-rose-400">ⓘ SABAB</span>
+                    <p class="text-sm font-bold text-white">Siz darslardan chetlashtirilgansiz. Maktab o‘quv bo‘limiga murojaat qiling.</p>
+                </div>
+
+                <div class="space-y-2.5">
+                    <span class="text-[11px] font-bold uppercase text-slate-400">NIMA QILISH KERAK?</span>
+                    <div class="bg-cardBg border border-blue-500/50 rounded-2xl p-4 flex items-start space-x-3">
+                        <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0"><i class="fa-solid fa-phone"></i></div>
+                        <div>
+                            <h4 class="text-xs font-extrabold text-white">O‘quv bo‘limiga murojaat qiling</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Ota-onangiz bilan birgalikda sababni aniqlang va hal qilish yo'lini toping.</p>
+                        </div>
+                    </div>
+                    <div onclick="closeBlockedOverlay(); switchMainTab('malakam');" class="bg-cardBg border border-slate-800 rounded-2xl p-4 flex items-start space-x-3 cursor-pointer">
+                        <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0"><i class="fa-solid fa-file-arrow-up"></i></div>
+                        <div>
+                            <h4 class="text-xs font-extrabold text-white">Qayta topshiring</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Chorak oxirida qoldirilgan dars soatlari uchun elektron topshiriq yuklash mumkin.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" onclick="closeBlockedOverlay()" class="w-full py-3.5 rounded-2xl bg-rose-600/20 border border-rose-500/40 text-rose-300 font-extrabold text-xs">
+                Asosiy rejimga qaytish
+            </button>
+        </div>
+
+        <!-- D) ADMIN PANEL MODALI (PIN: 2026 - EXCEL BAZA + YAKKA QO'SHISH + BOT TOKEN) -->
+        <div id="admin-pin-modal" class="hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div class="bg-cardBg border border-amber-500/40 rounded-3xl w-full max-w-sm p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-extrabold text-base text-white">🔒 Admin Panel (Ma'muriyat)</h3>
+                    <button type="button" onclick="closeAdminPinModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+                </div>
+
+                <!-- PIN tekshiruv qismi -->
+                <div id="admin-auth-box" class="space-y-3">
+                    <p class="text-xs text-slate-400">Ma'muriyat maxfiy PIN-kodini kiriting</p>
+                    <input type="password" id="admin-pin-input" maxlength="4" value="" placeholder="••••" autocomplete="off" class="w-full bg-darkBg border border-slate-700 rounded-2xl py-3 text-center text-xl font-mono tracking-widest text-white focus:outline-none focus:border-amber-500">
+                    <button type="button" onclick="unlockAdminWorkspace()" class="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl text-xs">Kirish</button>
+                </div>
+
+                <!-- Admin ichki boshqaruv oynasi -->
+                <div id="admin-workspace-box" class="hidden space-y-4">
+                    <!-- EXCEL IMPORT -->
+                    <div class="p-3 rounded-2xl bg-darkBg border border-blue-500/40 space-y-2.5">
+                        <h4 class="text-xs font-extrabold text-blue-400 uppercase">📊 Exceldan bazani birdan yuklash</h4>
+                        <p class="text-[11px] text-slate-400">Barcha o'quvchilar va ota-onalarning Telegram ID larini Excel fayldan bir zumda kiriting.</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="downloadExcelTemplate()" class="py-2 rounded-xl bg-slate-800 text-slate-200 text-[11px] font-bold">📥 Namuna Excel</button>
+                            <label class="py-2 rounded-xl bg-blue-600 text-white text-[11px] font-extrabold text-center cursor-pointer">
+                                📤 Fayl tanlash
+                                <input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImport(this)">
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- YAKKA O'QUVCHI QO'SHISH -->
+                    <div class="p-3 rounded-2xl bg-darkBg border border-slate-800 space-y-2.5">
+                        <h4 class="text-xs font-extrabold text-amber-400 uppercase">+ Yakka o'quvchi qo'shish</h4>
+                        <div class="grid grid-cols-3 gap-2">
+                            <select id="admin-new-class" class="bg-cardBg border border-slate-700 rounded-xl p-2 text-xs text-white">
+                                <option value="5-A">5-A sinf</option>
+                                <option value="6-A">6-A sinf</option>
+                                <option value="7-A">7-A sinf</option>
+                                <option value="8-A" selected>8-A sinf</option>
+                                <option value="9-A">9-A sinf</option>
+                                <option value="10-A">10-A sinf</option>
+                                <option value="11-A">11-A sinf</option>
+                            </select>
+                            <input type="text" id="admin-new-name" placeholder="Familiya va Ism" class="col-span-2 bg-cardBg border border-slate-700 rounded-xl p-2 text-xs text-white">
+                        </div>
+                        <input type="text" id="admin-new-jshshir" maxlength="14" placeholder="14 xonali JSHSHIR" class="w-full bg-cardBg border border-slate-700 rounded-xl p-2 text-xs font-mono text-white">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="admin-new-st-tg" placeholder="O'quvchi TG ID" class="bg-cardBg border border-slate-700 rounded-xl p-2 text-xs font-mono text-white">
+                            <input type="text" id="admin-new-pr-tg" placeholder="Ota-ona TG ID" class="bg-cardBg border border-slate-700 rounded-xl p-2 text-xs font-mono text-white">
+                        </div>
+                        <button type="button" onclick="adminAddStudentToDb()" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs">
+                            💾 Bazaga saqlash
+                        </button>
+                    </div>
+
+                    <button type="button" onclick="closeAdminPinModal(); openBotSettingsModal();" class="w-full py-2.5 rounded-xl bg-sky-600/20 border border-sky-500/40 text-sky-300 font-extrabold text-xs">
+                        🤖 Telegram Bot Token sozlamalari
+                    </button>
+
+                    <button type="button" onclick="closeAdminPinModal()" class="w-full py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">Yopish</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- E) TELEGRAM BOT TOKEN SOZLAMALARI MODALI -->
+        <div id="bot-settings-modal" class="hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
+            <div class="bg-cardBg border border-sky-500/40 rounded-3xl w-full max-w-sm p-5 space-y-4 step-animate">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-extrabold text-base text-white">🤖 Telegram Bot Sozlamalari</h3>
+                    <button type="button" onclick="closeBotSettingsModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    @BotFather dan <strong>Copy</strong> qilib olgan tokeningizni pastga joylashtiring. Baho qo'yilganda o'quvchi va ota-onaga haqiqiy Telegram xabari boradi.
+                </p>
+                <div class="space-y-2.5">
+                    <div>
+                        <label for="bot-token-input" class="text-[11px] font-bold text-slate-300 block mb-1">Telegram Bot Token:</label>
+                        <input type="text" id="bot-token-input" placeholder="123456789:ABCdefGHIjklMNO..." class="w-full bg-darkBg border border-slate-700 rounded-xl px-3 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div>
+                        <label for="bot-channel-input" class="text-[11px] font-bold text-slate-300 block mb-1">Majburiy kanal (@username — bot kanalda admin bo'lsin):</label>
+                        <input type="text" id="bot-channel-input" placeholder="@muborak_im_kanali" class="w-full bg-darkBg border border-slate-700 rounded-xl px-3 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-sky-500">
+                    </div>
+                    <label class="flex items-center space-x-2.5 bg-darkBg p-3 rounded-xl border border-slate-800 cursor-pointer">
+                        <input type="checkbox" id="bot-live-checkbox" class="w-4 h-4 text-sky-500 rounded">
+                        <span class="text-xs text-slate-200 font-semibold">Haqiqiy Telegram Bot API orqali yuborishni yoqish</span>
+                    </label>
+                    <div class="pt-1 border-t border-slate-800 space-y-2">
+                        <label for="bot-test-chatid" class="text-[11px] font-bold text-slate-300 block">Sinov uchun o'zingizning Chat ID ingiz (@userinfobot dan):</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="bot-test-chatid" placeholder="Masalan: 123456789" class="flex-1 bg-darkBg border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500">
+                            <button type="button" onclick="sendTestTelegramMessage()" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold shrink-0">Test</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button type="button" onclick="saveBotSettings()" class="py-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs">💾 Saqlash</button>
+                    <button type="button" onclick="closeBotSettingsModal()" class="py-3 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs">Yopish</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- F) MATERIALNI OCHIB O'QISH MODALI -->
+        <div id="material-viewer-modal" class="hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
+            <div class="bg-cardBg border border-indigo-500/40 rounded-3xl w-full max-w-sm max-h-[85vh] flex flex-col overflow-hidden step-animate">
+                <div class="p-4 border-b border-slate-800 flex items-start justify-between gap-2">
+                    <div>
+                        <span id="mv-badge" class="inline-block px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-indigo-500/20 text-indigo-300 mb-1"></span>
+                        <h3 id="mv-title" class="text-sm font-extrabold text-white leading-snug"></h3>
+                        <p id="mv-meta" class="text-[11px] text-slate-400 mt-0.5"></p>
+                    </div>
+                    <button type="button" onclick="closeMaterialViewer()" class="text-slate-400 hover:text-white text-sm p-1">✕</button>
+                </div>
+                <div id="mv-body" class="p-4 overflow-y-auto text-xs text-slate-200 whitespace-pre-line leading-relaxed flex-1"></div>
+                <div class="p-4 border-t border-slate-800 grid grid-cols-2 gap-2">
+                    <button type="button" onclick="downloadActiveMaterial()" class="py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs">📥 Yuklab olish</button>
+                    <button type="button" onclick="closeMaterialViewer()" class="py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs">Yopish</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOAST XABARNOMA -->
+        <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-blue-500/50 text-white px-4 py-2.5 rounded-2xl text-xs font-semibold shadow-2xl z-50 hidden max-w-[90%] text-center"></div>
+
+    </div>
+
+    <script>
+        // =========================================================================
+        // MUBORAK TUMAN IXTISOSLASHTIRILGAN MAKTABI MA'LUMOTLAR BAZASI
+        // =========================================================================
+        const STORAGE_KEY = 'muborak_im_platform_v2';
+        const SCHOOL_CLASSES = ['5-A', '6-A', '7-A', '8-A', '9-A', '10-A', '11-A'];
+        const TEACHER_SUBJECTS = ['Fizika fani', 'Matematika fani', 'Informatika fani', 'Kimyo-Biologiya', 'Ingliz tili'];
+
+        let studentsDatabase = [
+            {
+                id: 'st1',
+                className: '8-A',
+                fullName: "Yo'ldoshev Jo'rabek G'olibovich",
+                jshshir: '51205112620014',
+                birthDate: '2011-05-12',
+                avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=160&auto=format&fit=crop&q=80',
+                attendancePct: 92,
+                attendedHours: 66,
+                missedHours: 6,
+                todayEntry: '08:52',
+                grade: 5,
+                studentTg: '51234001',
+                parentTg: '51234002'
+            },
+            {
+                id: 'st2',
+                className: '8-A',
+                fullName: "Karimova Dilnoza Anvar qizi",
+                jshshir: '60409112620028',
+                birthDate: '2011-09-04',
+                avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=160&auto=format&fit=crop&q=80',
+                attendancePct: 100,
+                attendedHours: 72,
+                missedHours: 0,
+                todayEntry: '08:50',
+                grade: 5,
+                studentTg: '51234003',
+                parentTg: '51234004'
+            },
+            {
+                id: 'st3',
+                className: '6-A',
+                fullName: "Yo'ldosheva Madina G'olibovna",
+                jshshir: '61803132620045',
+                birthDate: '2013-03-18',
+                avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&auto=format&fit=crop&q=80',
+                attendancePct: 96,
+                attendedHours: 68,
+                missedHours: 2,
+                todayEntry: '08:54',
+                grade: 5,
+                studentTg: '51234005',
+                parentTg: '51234006'
+            },
+            {
+                id: 'st4',
+                className: '9-A',
+                fullName: "Rustamov Sardorbek Olim o'g'li",
+                jshshir: '52211102620081',
+                birthDate: '2010-11-22',
+                avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160&auto=format&fit=crop&q=80',
+                attendancePct: 88,
+                attendedHours: 64,
+                missedHours: 8,
+                todayEntry: 'Kelmadi',
+                grade: 4,
+                studentTg: '51234007',
+                parentTg: '51234008'
+            }
+        ];
+
+        let courseMaterials = [
+            {
+                id: 'cm1',
+                type: 'Choraklik ish reja',
+                subject: 'Fizika',
+                className: '8-A',
+                quarter: '2-chorak',
+                title: '8-sinf Fizika 2-chorak taqvim-mavzu ish rejasi',
+                fileName: 'Fizika_8A_2chorak_ish_reja.txt',
+                content: "1-hafta: Elektr toki va kuchlanish.\n2-hafta: Om qonuni va qarshilik.\n3-hafta: Iste'molchilarni ketma-ket va parallel ulash (PhET laboratoriya).\n4-hafta: Elektr tokining ishi va quvvati. Nazorat ishi.",
+                date: '19.11.2026'
+            },
+            {
+                id: 'cm2',
+                type: 'Taqdimot',
+                subject: 'Fizika',
+                className: '8-A',
+                quarter: '2-chorak',
+                title: "Iste'molchilarni parallel ulash (PhET taqdimot)",
+                fileName: 'Parallel_ulash_taqdimot.txt',
+                content: "1-slayd: Parallel zanjir tugunlari.\n2-slayd: Kuchlanish doimiyligi (U = U1 = U2).\n3-slayd: Toklar yig'indisi (I = I1 + I2).\n4-slayd: Umumiy qarshilik (1/R = 1/R1 + 1/R2).",
+                date: '18.11.2026'
+            },
+            {
+                id: 'cm3',
+                type: "Ma'ruza",
+                subject: 'Matematika',
+                className: '8-A',
+                quarter: '2-chorak',
+                title: 'Kvadrat tenglamalar va Viyet teoremasi konspekti',
+                fileName: 'Kvadrat_tenglamalar_maruza.txt',
+                content: "Kvadrat tenglama: ax^2 + bx + c = 0 (a != 0).\nDiskriminant: D = b^2 - 4ac.\nViyet teoremasi: x1 + x2 = -b/a, x1 * x2 = c/a.",
+                date: '17.11.2026'
+            }
+        ];
+
+        let botSettings = {
+            token: '',
+            live: false,
+            channelUsername: '@muborak_im_kanali'
+        };
+        let hasVisitedChannel = false;
+        let isChannelVerified = false;
+
+        let botMessageLogs = [];
+        const uploadedMaterialBlobUrls = {};
+        let currentMaterialFilter = 'Barchasi';
+        let activeMaterialId = null;
+
+        function loadPersistedData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed.studentsDatabase) && parsed.studentsDatabase.length) {
+                    studentsDatabase = parsed.studentsDatabase;
+                }
+                if (Array.isArray(parsed.courseMaterials)) {
+                    courseMaterials = parsed.courseMaterials;
+                }
+                if (parsed.botSettings) {
+                    botSettings = parsed.botSettings;
+                }
+                if (Array.isArray(parsed.botMessageLogs)) {
+                    botMessageLogs = parsed.botMessageLogs;
+                }
+            } catch (e) {}
+        }
+
+        function savePersistedData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    studentsDatabase,
+                    courseMaterials,
+                    botSettings,
+                    botMessageLogs: botMessageLogs.slice(0, 40)
+                }));
+            } catch (e) {}
+        }
+
+        loadPersistedData();
+
+        const SCHEDULE_DAYS = [
+            { day: 'JU', date: '13', fullDate: '13.11.2026', dot: true },
+            { day: 'DU', date: '16', fullDate: '16.11.2026', dot: true },
+            { day: 'SE', date: '17', fullDate: '17.11.2026', dot: true },
+            { day: 'CH', date: '18', fullDate: '18.11.2026', active: true },
+            { day: 'PA', date: '19', fullDate: '19.11.2026', dot: false },
+            { day: 'JU', date: '20', fullDate: '20.11.2026', dot: false },
+            { day: 'DU', date: '23', fullDate: '23.11.2026', dot: false }
+        ];
+
+        let dailyLessons = [
+            {
+                para: '1-para',
+                time: '09:00 – 10:20',
+                title: "Zamonaviy ta'lim paradigmalari va fizika",
+                teacher: 'Malohat Ergasheva',
+                room: 'A-korpus, 202',
+                topic: "Xalqaro baholash dasturlari (PISA, TIMSS) va elektr zanjirlari amaliyoti",
+                openHint: 'Dars 09:00 da boshlanadi • kirish 08:50 dan ochiladi',
+                kirishTime: null,
+                chiqishTime: null
+            },
+            {
+                para: '2-para',
+                time: '10:30 – 11:50',
+                title: "Amaliy mashg'ulotlar va laboratoriya tajribalarini takomillashtirish",
+                teacher: 'Mexriniso Bexudova',
+                room: 'A-korpus, 202',
+                topic: "Data-loggerlar, sensorlar: raqamli o'lchov va ma'lumotlarni qayta ishlash uskunalari.",
+                openHint: 'Dars 10:30 da boshlanadi • kirish 10:20 dan ochiladi',
+                kirishTime: null,
+                chiqishTime: null
+            },
+            {
+                para: '3-para',
+                time: '12:00 – 13:20',
+                title: "Amaliy mashg'ulotlar va laboratoriya tajribalarini takomillashtirish",
+                teacher: 'Mexriniso Bexudova',
+                room: 'A-korpus, 202',
+                topic: "Xavfsizlik qoidalari va laboratoriya hujjatlari (ish daftarlari, yo'riqnomalar).",
+                openHint: 'Dars 12:00 da boshlanadi • kirish 11:50 dan ochiladi',
+                kirishTime: null,
+                chiqishTime: null
+            }
+        ];
+
+        // Global State
+        let currentRole = 'student';
+        let selectedStudentClass = '8-A';
+        let currentMatchedStudent = studentsDatabase[0];
+        let parentSelectedClasses = ['8-A', '6-A'];
+        let parentSelectedChildIds = ['st1', 'st3'];
+        let activeParentChildId = 'st1';
+        let selectedTeacherSubject = 'Fizika fani';
+        let attendanceSimState = 'open_enter';
+        let pendingQrActionType = 'kirish';
+
+        // =========================================================================
+        // ONBOARDING BOSQICHLARI
+        // =========================================================================
+        function goToOnboardingStep(step) {
+            for (let i = 0; i <= 5; i++) {
+                const el = document.getElementById(`step-${i}`);
+                if (el) el.classList.add('hidden');
+            }
+            const target = document.getElementById(`step-${step}`);
+            if (target) target.classList.remove('hidden');
+
+            if (step === 2) {
+                updateMandatoryChannelUI();
+            }
+            if (step === 4) {
+                renderStep4ByRole();
+            }
+        }
+
+        function selectRole(role) {
+            currentRole = role;
+            ['student', 'parent', 'teacher'].forEach(r => {
+                const card = document.getElementById(`role-card-${r}`);
+                const chk = document.getElementById(`role-check-${r}`);
+                if (r === role) {
+                    card.className = "p-4 rounded-2xl border-2 border-blue-500 bg-blue-600/15 cursor-pointer flex items-center space-x-3.5 relative transition";
+                    chk.className = "fa-solid fa-circle-check text-blue-400 text-lg absolute right-4";
+                } else {
+                    card.className = "p-4 rounded-2xl border border-slate-800 bg-cardBg cursor-pointer flex items-center space-x-3.5 relative transition";
+                    chk.className = "fa-regular fa-circle text-slate-600 text-lg absolute right-4";
+                }
+            });
+        }
+
+        function updateMandatoryChannelUI() {
+            const rawHandle = (botSettings.channelUsername || '@muborak_im_kanali').trim();
+            const handle = rawHandle.startsWith('@') ? rawHandle : '@' + rawHandle;
+            const slug = handle.replace(/^@/, '');
+            const handleEl = document.getElementById('mandatory-channel-handle');
+            const linkEl = document.getElementById('mandatory-channel-link');
+            const badgeEl = document.getElementById('channel-sub-badge');
+            if (handleEl) handleEl.innerText = handle;
+            if (linkEl) linkEl.href = 'https://t.me/' + encodeURIComponent(slug);
+            if (badgeEl) {
+                if (isChannelVerified) {
+                    badgeEl.className = 'px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold shrink-0';
+                    badgeEl.innerText = "Tasdiqlandi ✓";
+                } else if (hasVisitedChannel) {
+                    badgeEl.className = 'px-2 py-1 rounded-lg bg-amber-500/20 text-amber-300 text-[10px] font-extrabold shrink-0';
+                    badgeEl.innerText = "Tekshirishga tayyor";
+                } else {
+                    badgeEl.className = 'px-2 py-1 rounded-lg bg-rose-500/15 text-rose-300 text-[10px] font-extrabold shrink-0';
+                    badgeEl.innerText = "A'zo emas";
+                }
+            }
+        }
+
+        function markChannelVisited() {
+            hasVisitedChannel = true;
+            const errBox = document.getElementById('channel-error-box');
+            if (errBox) errBox.classList.add('hidden');
+            updateMandatoryChannelUI();
+            showToast("📢 Kanal ochildi! A'zo bo'lgach, «A'zolikni tekshirish» tugmasini bosing.");
+        }
+
+        async function verifyMandatoryChannelAndContinue() {
+            const errBox = document.getElementById('channel-error-box');
+            const tgUserId = (document.getElementById('onboard-tg-id')?.value || '').trim();
+            const rawHandle = (botSettings.channelUsername || '@muborak_im_kanali').trim();
+            const handle = rawHandle.startsWith('@') ? rawHandle : '@' + rawHandle;
+
+            if (botSettings.live && botSettings.token && tgUserId) {
+                try {
+                    const resp = await fetch(`https://api.telegram.org/bot${encodeURIComponent(botSettings.token)}/getChatMember?chat_id=${encodeURIComponent(handle)}&user_id=${encodeURIComponent(tgUserId)}`);
+                    const data = await resp.json();
+                    const status = data?.result?.status;
+                    if (data.ok && ['member', 'administrator', 'creator'].includes(status)) {
+                        isChannelVerified = true;
+                        if (errBox) errBox.classList.add('hidden');
+                        updateMandatoryChannelUI();
+                        showToast(`✅ ${handle} kanaliga a'zoligingiz bot orqali tasdiqlandi!`);
+                        goToOnboardingStep(3);
+                        return;
+                    } else {
+                        isChannelVerified = false;
+                        if (errBox) {
+                            errBox.innerText = `⚠️ Siz hali ${handle} kanaliga a'zo emassiz. Avval kanalga qo'shilib qayta tekshiring!`;
+                            errBox.classList.remove('hidden');
+                        }
+                        updateMandatoryChannelUI();
+                        return;
+                    }
+                } catch (e) {
+                    showToast("⚠️ Jonli tekshiruvda xatolik: bot kanalda admin ekanini tekshiring.");
+                }
+            }
+
+            if (!hasVisitedChannel) {
+                if (errBox) {
+                    errBox.innerText = `⚠️ Avval yuqoridagi «Kanalga a'zo bo'lish» tugmasini bosib ${handle} kanaliga qo'shiling!`;
+                    errBox.classList.remove('hidden');
+                }
+                showToast("⚠️ Majburiy kanalga a'zo bo'lmasdan davom etib bo'lmaydi!");
+                return;
+            }
+
+            isChannelVerified = true;
+            if (errBox) errBox.classList.add('hidden');
+            updateMandatoryChannelUI();
+            showToast(`✅ ${handle} kanaliga obuna tasdiqlandi!`);
+            goToOnboardingStep(3);
+        }
+
+        function sharePhone() {
+            document.getElementById('onboard-phone').value = "+998 99 560 21 06";
+            showToast("📱 Telefon raqamingiz tasdiqlandi!");
+        }
+
+        function renderStep4ByRole() {
+            document.getElementById('step4-student-box').classList.toggle('hidden', currentRole !== 'student');
+            document.getElementById('step4-parent-box').classList.toggle('hidden', currentRole !== 'parent');
+            document.getElementById('step4-teacher-box').classList.toggle('hidden', currentRole !== 'teacher');
+
+            if (currentRole === 'student') {
+                renderStudentClassSelector();
+                renderStudentQuickPicks();
+                lookupStudentByJshshir();
+            } else if (currentRole === 'parent') {
+                renderParentClassMultiSelector();
+                renderParentChildrenList();
+            } else if (currentRole === 'teacher') {
+                renderTeacherSubjects();
+            }
+        }
+
+        function renderStudentClassSelector() {
+            const container = document.getElementById('student-class-list');
+            container.innerHTML = SCHOOL_CLASSES.map(cls => `
+                <button type="button" onclick="chooseStudentClass('${cls}')" class="py-2 rounded-xl text-xs font-extrabold border transition ${selectedStudentClass === cls ? 'bg-blue-600 border-blue-400 text-white' : 'bg-cardBg border-slate-800 text-slate-300'}">
+                    ${cls}
+                </button>
+            `).join('');
+        }
+
+        function chooseStudentClass(cls) {
+            selectedStudentClass = cls;
+            renderStudentClassSelector();
+            renderStudentQuickPicks();
+            const firstInClass = studentsDatabase.find(s => s.className === cls);
+            if (firstInClass) {
+                fillStudentFromQuickPick(firstInClass.id);
+            }
+        }
+
+        function renderStudentQuickPicks() {
+            const container = document.getElementById('student-quick-picks');
+            const list = studentsDatabase.filter(s => s.className === selectedStudentClass);
+            const pool = list.length ? list : studentsDatabase;
+            container.innerHTML = pool.slice(0, 8).map(st => `
+                <button type="button" onclick="fillStudentFromQuickPick('${st.id}')" class="px-2.5 py-1.5 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/30 text-[11px] font-bold text-blue-300 flex items-center space-x-1.5">
+                    <span>👤 ${escapeHtml(st.fullName.split(' ')[0])} (${escapeHtml(st.className)})</span>
+                </button>
+            `).join('');
+        }
+
+        function fillStudentFromQuickPick(studentId) {
+            const st = studentsDatabase.find(s => s.id === studentId);
+            if (!st) return;
+            selectedStudentClass = st.className;
+            renderStudentClassSelector();
+            document.getElementById('student-fullname-input').value = st.fullName;
+            document.getElementById('student-jshshir-input').value = st.jshshir;
+            lookupStudentByJshshir();
+        }
+
+        function lookupStudentByJshshir() {
+            const jsh = (document.getElementById('student-jshshir-input').value || '').trim();
+            const nameVal = (document.getElementById('student-fullname-input').value || '').trim().toLowerCase();
+            const card = document.getElementById('matched-student-card');
+
+            let found = studentsDatabase.find(s => s.jshshir === jsh);
+            if (!found && nameVal.length > 3) {
+                found = studentsDatabase.find(s => s.fullName.toLowerCase().includes(nameVal));
+            }
+            if (!found && jsh.length === 14) {
+                found = {
+                    id: 'custom',
+                    className: selectedStudentClass,
+                    fullName: document.getElementById('student-fullname-input').value || "Yangi O'quvchi",
+                    jshshir: jsh,
+                    birthDate: '2011-01-15',
+                    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=160&auto=format&fit=crop&q=80',
+                    attendancePct: 95,
+                    attendedHours: 68,
+                    missedHours: 2,
+                    todayEntry: '08:51',
+                    grade: 5,
+                    studentTg: '',
+                    parentTg: ''
+                };
+            }
+
+            if (found) {
+                currentMatchedStudent = found;
+                card.classList.remove('hidden');
+                card.innerHTML = `
+                    <div class="flex items-center space-x-3.5">
+                        <img src="${found.avatar}" class="w-16 h-16 rounded-2xl object-cover border-2 border-emerald-400 shrink-0" alt="${escapeHtml(found.fullName)}">
+                        <div class="min-w-0 flex-1">
+                            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">✅ Bazadan topildi</span>
+                            <h4 class="text-sm font-extrabold text-white truncate mt-1">${escapeHtml(found.fullName)}</h4>
+                            <p class="text-xs font-mono text-emerald-400">JSHSHIR: ${escapeHtml(found.jshshir)}</p>
+                            <p class="text-[11px] text-slate-300">${escapeHtml(found.className)} sinf • Tug'ilgan: ${escapeHtml(found.birthDate)}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                card.classList.add('hidden');
+            }
+        }
+
+        function renderParentClassMultiSelector() {
+            const container = document.getElementById('parent-class-list');
+            container.innerHTML = SCHOOL_CLASSES.map(cls => {
+                const active = parentSelectedClasses.includes(cls);
+                return `
+                    <button type="button" onclick="toggleParentClass('${cls}')" class="py-2 rounded-xl text-xs font-extrabold border transition ${active ? 'bg-purple-600 border-purple-400 text-white' : 'bg-cardBg border-slate-800 text-slate-400'}">
+                        ${cls} ${active ? '✓' : ''}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function toggleParentClass(cls) {
+            if (parentSelectedClasses.includes(cls)) {
+                if (parentSelectedClasses.length > 1) {
+                    parentSelectedClasses = parentSelectedClasses.filter(c => c !== cls);
+                }
+            } else {
+                parentSelectedClasses.push(cls);
+            }
+            renderParentClassMultiSelector();
+            renderParentChildrenList();
+        }
+
+        function renderParentChildrenList() {
+            const container = document.getElementById('parent-children-list');
+            const matchingStudents = studentsDatabase.filter(s => parentSelectedClasses.includes(s.className));
+            const listToShow = matchingStudents.length ? matchingStudents : studentsDatabase;
+
+            container.innerHTML = listToShow.map(st => {
+                const isSelected = parentSelectedChildIds.includes(st.id);
+                return `
+                    <div onclick="toggleParentChild('${st.id}')" class="p-3 rounded-2xl border cursor-pointer flex items-center justify-between transition ${isSelected ? 'bg-purple-600/20 border-purple-500' : 'bg-cardBg border-slate-800'}">
+                        <div class="flex items-center space-x-3">
+                            <img src="${st.avatar}" class="w-12 h-12 rounded-xl object-cover border border-purple-400" alt="${escapeHtml(st.fullName)}">
+                            <div>
+                                <h4 class="text-xs font-extrabold text-white">${escapeHtml(st.fullName)}</h4>
+                                <p class="text-[11px] text-purple-300 font-semibold">${escapeHtml(st.className)} sinf • Davomat: ${st.attendancePct}%</p>
+                                <p class="text-[10px] font-mono text-slate-400">JSHSHIR: ${escapeHtml(st.jshshir)}</p>
+                            </div>
+                        </div>
+                        <i class="${isSelected ? 'fa-solid fa-circle-check text-purple-400 text-lg' : 'fa-regular fa-circle text-slate-600 text-lg'}"></i>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleParentChild(id) {
+            if (parentSelectedChildIds.includes(id)) {
+                if (parentSelectedChildIds.length > 1) {
+                    parentSelectedChildIds = parentSelectedChildIds.filter(item => item !== id);
+                }
+            } else {
+                parentSelectedChildIds.push(id);
+            }
+            activeParentChildId = parentSelectedChildIds[0];
+            renderParentChildrenList();
+        }
+
+        function renderTeacherSubjects() {
+            const container = document.getElementById('teacher-subject-list');
+            container.innerHTML = TEACHER_SUBJECTS.map(subj => `
+                <button type="button" onclick="selectTeacherSubject('${subj}')" class="p-2.5 rounded-xl text-xs font-bold border transition ${selectedTeacherSubject === subj ? 'bg-emerald-600 border-emerald-400 text-white' : 'bg-cardBg border-slate-800 text-slate-300'}">
+                    ${subj}
+                </button>
+            `).join('');
+        }
+
+        function selectTeacherSubject(subj) {
+            selectedTeacherSubject = subj;
+            document.getElementById('teacher-selected-subj-label').innerText = `${subj} o'qituvchisi • JSHSHIR: 31106962620031`;
+            renderTeacherSubjects();
+        }
+
+        function validateStep4AndContinue() {
+            if (currentRole === 'student' && !currentMatchedStudent) {
+                fillStudentFromQuickPick(studentsDatabase[0].id);
+            }
+            goToOnboardingStep(5);
+        }
+
+        function completeOnboarding() {
+            if (!document.getElementById('oferta-checkbox').checked) {
+                showToast("Iltimos, oferta rozilik belgisini qo'ying!");
+                return;
+            }
+            document.getElementById('onboarding-screen').classList.add('hidden');
+            document.getElementById('main-dashboard').classList.remove('hidden');
+            configureDashboardForRole();
+            switchMainTab('asosiy');
+            showToast("Muborak tuman ixtisoslashtirilgan maktab platformasiga xush kelibsiz!");
+        }
+
+        function resetToOnboarding() {
+            document.getElementById('main-dashboard').classList.add('hidden');
+            document.getElementById('onboarding-screen').classList.remove('hidden');
+            goToOnboardingStep(0);
+        }
+
+        // =========================================================================
+        // ASOSIY KABINET VA 6 TA PASTKI MENYUNI BOSHQARISH
+        // =========================================================================
+        function configureDashboardForRole() {
+            const avatarEl = document.getElementById('header-avatar');
+            const nameEl = document.getElementById('header-name');
+            const subEl = document.getElementById('header-sub');
+            const parentBar = document.getElementById('parent-child-switcher');
+
+            document.getElementById('asosiy-student-view').classList.toggle('hidden', currentRole === 'parent');
+            document.getElementById('asosiy-parent-view').classList.toggle('hidden', currentRole !== 'parent');
+            document.getElementById('asosiy-teacher-view').classList.toggle('hidden', currentRole !== 'teacher');
+
+            if (currentRole === 'student') {
+                const st = currentMatchedStudent || studentsDatabase[0];
+                avatarEl.src = st.avatar;
+                nameEl.innerText = st.fullName;
+                subEl.innerText = `${st.className} sinf o'quvchisi • Muborak tuman IM`;
+                document.getElementById('profil-jshshir').innerText = st.jshshir;
+                document.getElementById('oneid-fullname').innerText = st.fullName;
+                document.getElementById('oneid-pinfl').innerText = st.jshshir;
+                document.getElementById('oneid-avatar').src = st.avatar;
+                parentBar.classList.add('hidden');
+            } else if (currentRole === 'parent') {
+                parentBar.classList.remove('hidden');
+                renderParentChildSwitcherBar();
+                updateParentDashboardChild();
+            } else if (currentRole === 'teacher') {
+                avatarEl.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&auto=format&fit=crop&q=80";
+                nameEl.innerText = "Sobirov Shohjahon";
+                subEl.innerText = `${selectedTeacherSubject} o'qituvchisi`;
+                document.getElementById('profil-jshshir').innerText = "31106962620031";
+                parentBar.classList.add('hidden');
+                renderTeacherRoster();
+                renderTeacherBotLog();
+            }
+
+            updateBotStatusIndicators();
+            renderScheduleDays();
+            renderScheduleLessons();
+            renderWeeklyAttendanceMatrix();
+            renderFanlarModules();
+            renderStudentMaterialsLibrary();
+            setAttendanceSimState('open_enter');
+        }
+
+        function switchMainTab(tabName) {
+            const tabs = ['asosiy', 'davomat', 'ai', 'fanlar', 'malakam', 'profil'];
+            tabs.forEach(t => {
+                const section = document.getElementById(`tab-view-${t}`);
+                const btn = document.getElementById(`nav-btn-${t}`);
+                if (section) {
+                    section.classList.toggle('hidden', t !== tabName);
+                }
+                if (btn) {
+                    if (t === tabName) {
+                        btn.className = "flex flex-col items-center justify-center py-1.5 rounded-2xl bg-gradient-to-b from-blue-500 to-indigo-600 text-white shadow-md transition";
+                    } else {
+                        btn.className = "flex flex-col items-center justify-center py-1.5 rounded-2xl text-slate-400 hover:text-white transition";
+                    }
+                }
+            });
+            document.getElementById('main-scroll-area').scrollTop = 0;
+        }
+
+        function switchMalakamSubtab(sub) {
+            const isMikro = sub === 'mikrodars';
+            document.getElementById('malakam-mikrodars-pane').classList.toggle('hidden', !isMikro);
+            document.getElementById('malakam-oneid-pane').classList.toggle('hidden', isMikro);
+            document.getElementById('subtab-btn-mikrodars').className = isMikro
+                ? "py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-extrabold transition"
+                : "py-2.5 rounded-xl text-slate-400 hover:text-white text-xs font-extrabold transition";
+            document.getElementById('subtab-btn-oneid').className = !isMikro
+                ? "py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-extrabold transition"
+                : "py-2.5 rounded-xl text-slate-400 hover:text-white text-xs font-extrabold transition";
+        }
+
+        // =========================================================================
+        // TELEGRAM BOT TOKEN VA HAQIQIY API YUBORISH
+        // =========================================================================
+        function openBotSettingsModal() {
+            document.getElementById('bot-token-input').value = botSettings.token || '';
+            document.getElementById('bot-channel-input').value = botSettings.channelUsername || '@muborak_im_kanali';
+            document.getElementById('bot-live-checkbox').checked = Boolean(botSettings.live);
+            document.getElementById('bot-settings-modal').classList.remove('hidden');
+        }
+
+        function closeBotSettingsModal() {
+            document.getElementById('bot-settings-modal').classList.add('hidden');
+        }
+
+        function saveBotSettings() {
+            botSettings.token = (document.getElementById('bot-token-input').value || '').trim();
+            const ch = (document.getElementById('bot-channel-input').value || '').trim();
+            botSettings.channelUsername = ch ? (ch.startsWith('@') ? ch : '@' + ch) : '@muborak_im_kanali';
+            botSettings.live = document.getElementById('bot-live-checkbox').checked;
+            savePersistedData();
+            updateBotStatusIndicators();
+            updateMandatoryChannelUI();
+            closeBotSettingsModal();
+            showToast(botSettings.live && botSettings.token ? "✅ Telegram Bot va majburiy kanal saqlandi!" : "💾 Bot sozlamalari saqlandi!");
+        }
+
+        function updateBotStatusIndicators() {
+            const isLive = Boolean(botSettings.live && botSettings.token);
+            const hBadge = document.getElementById('header-bot-status');
+            const pText = document.getElementById('profil-bot-status-text');
+            if (hBadge) hBadge.innerText = isLive ? 'Jonli' : 'Bot';
+            if (pText) {
+                pText.innerText = isLive
+                    ? 'Jonli Telegram API faol • Token ulangan'
+                    : 'Simulyatsiya rejimi • Token ulash uchun bosing';
+            }
+        }
+
+        async function sendTelegramApiMessage(chatId, text) {
+            if (!botSettings.live || !botSettings.token || !chatId) {
+                return { sentLive: false };
+            }
+            try {
+                const resp = await fetch(`https://api.telegram.org/bot${encodeURIComponent(botSettings.token)}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: text })
+                });
+                const data = await resp.json();
+                return { sentLive: true, ok: Boolean(data.ok) };
+            } catch (err) {
+                return { sentLive: true, ok: false };
+            }
+        }
+
+        async function sendTestTelegramMessage() {
+            const token = (document.getElementById('bot-token-input').value || '').trim();
+            const chatId = (document.getElementById('bot-test-chatid').value || '').trim();
+            if (!token || !chatId) {
+                showToast("Iltimos, avval Bot Token va Chat ID raqamingizni kiriting!");
+                return;
+            }
+            botSettings.token = token;
+            botSettings.live = true;
+            document.getElementById('bot-live-checkbox').checked = true;
+            savePersistedData();
+            updateBotStatusIndicators();
+
+            const res = await sendTelegramApiMessage(chatId, "✅ Salom! Muborak tuman ixtisoslashtirilgan maktab platformasi botingizga muvaffaqiyatli ulandi!");
+            if (res.ok) {
+                showToast("✅ Sinov xabari Telegramingizga yuborildi!");
+            } else {
+                showToast("⚠️ Xabar ketmadi: avval botingizga kirib /start bosing va Chat ID to'g'riligini tekshiring.");
+            }
+        }
+
+        // =========================================================================
+        // EXCEL ORQALI BAZANI BIRDAN YUKLASH (.xlsx, .xls, .csv)
+        // =========================================================================
+        function downloadExcelTemplate() {
+            if (typeof XLSX === 'undefined') {
+                showToast("Excel kutubxonasi yuklanmadi.");
+                return;
+            }
+            const sample = [
+                {
+                    "Sinf": "8-A",
+                    "O'quvchi F.I.Sh": "Sobirov Sardor Alisher o'g'li",
+                    "JSHSHIR": "51104122620019",
+                    "O'quvchi Telegram ID": "51234901",
+                    "Ota-ona Telegram ID": "51234902"
+                },
+                {
+                    "Sinf": "9-A",
+                    "O'quvchi F.I.Sh": "Murodova Zilola Dilshod qizi",
+                    "JSHSHIR": "61008112620025",
+                    "O'quvchi Telegram ID": "51234903",
+                    "Ota-ona Telegram ID": "51234904"
+                }
+            ];
+            const ws = XLSX.utils.json_to_sheet(sample);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Oquvchilar");
+            XLSX.writeFile(wb, "Muborak_IM_Baza_Namuna.xlsx");
+            showToast("📥 Namuna Excel fayli yuklab olindi!");
+        }
+
+        function handleExcelImport(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            if (typeof XLSX === 'undefined') {
+                showToast("Excel o'qish kutubxonasi yuklanmadi.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const wb = XLSX.read(data, { type: 'array' });
+                    const sheet = wb.Sheets[wb.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+                    if (!rows.length) {
+                        showToast("Excel fayl bo'sh ekan!");
+                        return;
+                    }
+                    const imported = rows.map((row, idx) => {
+                        const keys = Object.keys(row);
+                        const getField = (patterns) => {
+                            const foundKey = keys.find(k => patterns.some(p => k.toLowerCase().includes(p)));
+                            return foundKey ? String(row[foundKey]).trim() : '';
+                        };
+                        const fullName = getField(["f.i.sh", "ism", "o'quvchi f", "student", "fio"]) || String(row[keys[1]] || row[keys[0]] || '').trim();
+                        const className = getField(["sinf", "class"]) || '8-A';
+                        const jshshir = getField(["jshshir", "pinfl"]) || String(51000000000000 + idx);
+                        const studentTg = getField(["o'quvchi telegram", "student tg", "o'quvchi id"]) || '';
+                        const parentTg = getField(["ota-ona telegram", "parent tg", "ota-ona id"]) || '';
+                        return {
+                            id: 'ex_' + Date.now() + '_' + idx,
+                            className,
+                            fullName,
+                            jshshir,
+                            birthDate: '2011-05-10',
+                            avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=160&auto=format&fit=crop&q=80',
+                            attendancePct: 100,
+                            attendedHours: 72,
+                            missedHours: 0,
+                            todayEntry: '08:50',
+                            grade: 5,
+                            studentTg,
+                            parentTg
+                        };
+                    }).filter(st => st.fullName.length > 0);
+
+                    if (!imported.length) {
+                        showToast("Excel ustunlari topilmadi. Namuna Excel faylidan foydalaning.");
+                        return;
+                    }
+
+                    studentsDatabase = [...imported, ...studentsDatabase];
+                    savePersistedData();
+                    renderTeacherRoster();
+                    renderStudentQuickPicks();
+                    renderParentChildrenList();
+                    showToast(`✅ Exceldan ${imported.length} ta o'quvchi bazaga muvaffaqiyatli qo'shildi!`);
+                } catch (e) {
+                    showToast("❌ Excel faylni o'qishda xatolik yuz berdi.");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            input.value = '';
+        }
+
+        // =========================================================================
+        // O'QITUVCHI BAHOLASHI -> O'QUVCHI VA OTA-ONAGA BOT XABARI
+        // =========================================================================
+        async function gradeStudentAndNotify(studentId, gradeValue) {
+            const st = studentsDatabase.find(s => s.id === studentId);
+            if (!st) return;
+            const subjectEl = document.getElementById('teacher-grade-subject');
+            const subject = subjectEl ? subjectEl.value : 'Fizika';
+            const timeStr = new Date().toTimeString().slice(0, 5);
+
+            let studentText = '';
+            let parentText = '';
+
+            if (gradeValue === 'NB') {
+                studentText = `⚠️ ${st.fullName}, siz bugun ${subject} darsiga qatnashmadingiz (NB).`;
+                parentText = `⚠️ Hurmatli ota-ona! Farzandingiz ${st.fullName} (${st.className}) bugun ${subject} darsiga qatnashmadi (NB).`;
+            } else {
+                st.grade = Number(gradeValue);
+                studentText = `⭐ Assalomu alaykum, ${st.fullName}! Siz bugun ${subject} fanidan ${gradeValue} baho oldingiz.`;
+                parentText = `⭐ Hurmatli ota-ona! Farzandingiz ${st.fullName} (${st.className}) bugun ${subject} fanidan ${gradeValue} baho oldi.`;
+            }
+
+            const resSt = await sendTelegramApiMessage(st.studentTg, studentText);
+            const resPr = await sendTelegramApiMessage(st.parentTg, parentText);
+
+            botMessageLogs.unshift(
+                { time: timeStr, role: "Ota-onaga", tgId: st.parentTg || "ID yo'q", text: parentText, liveOk: resPr.ok },
+                { time: timeStr, role: "O'quvchiga", tgId: st.studentTg || "ID yo'q", text: studentText, liveOk: resSt.ok }
+            );
+
+            // Ota-ona xabarnomalariga ham qo'shish
+            const pBox = document.getElementById('parent-notifications-list');
+            if (pBox) {
+                pBox.insertAdjacentHTML('afterbegin', `
+                    <div class="p-3 rounded-xl bg-blue-500/15 border border-blue-500/40 text-slate-100 step-animate">
+                        <div class="flex justify-between text-[10px] text-blue-300 font-bold mb-1">
+                            <span>🤖 Bot xabari (${escapeHtml(subject)})</span>
+                            <span>${timeStr}</span>
+                        </div>
+                        ${escapeHtml(parentText)}
+                    </div>
+                `);
+            }
+
+            savePersistedData();
+            renderTeacherBotLog();
+
+            if (botSettings.live && botSettings.token) {
+                showToast(`✅ ${st.fullName}: ${subject}dan ${gradeValue} — o'quvchi va ota-onaga Telegram botdan yuborildi!`);
+            } else {
+                showToast(`✅ ${st.fullName}: ${subject}dan ${gradeValue} (Bot xabari qayd etildi)`);
+            }
+        }
+
+        function renderTeacherBotLog() {
+            const box = document.getElementById('teacher-bot-log');
+            const countEl = document.getElementById('bot-log-count');
+            if (!box) return;
+            if (countEl) countEl.innerText = `${botMessageLogs.length} ta`;
+            if (!botMessageLogs.length) {
+                box.innerHTML = '<p class="text-[11px] text-slate-500 text-center py-3">Baho qo\'yganingizda o\'quvchi va ota-onaga ketgan bot xabarlari shu yerda ko\'rinadi.</p>';
+                return;
+            }
+            box.innerHTML = botMessageLogs.slice(0, 15).map(m => `
+                <div class="p-2.5 rounded-xl bg-[#0e1424] border border-slate-800 space-y-1">
+                    <div class="flex items-center justify-between text-[10px]">
+                        <span class="font-bold ${m.role === 'Ota-onaga' ? 'text-purple-400' : 'text-sky-400'}">${escapeHtml(m.role)} (ID: ${escapeHtml(m.tgId)})</span>
+                        <span class="text-slate-500 font-mono">${escapeHtml(m.time)}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-200 leading-snug">${escapeHtml(m.text)}</p>
+                </div>
+            `).join('');
+        }
+
+        // =========================================================================
+        // O'QITUVCHI MATERIALLAR YUKLASHI VA O'QUVCHI OCHIB FOYDALANISHI
+        // =========================================================================
+        function handleTeacherMaterialUpload(e) {
+            e.preventDefault();
+            const type = document.getElementById('tmat-type').value;
+            const subject = document.getElementById('tmat-subject').value;
+            const className = document.getElementById('tmat-class').value;
+            const quarter = document.getElementById('tmat-quarter').value;
+            const title = (document.getElementById('tmat-title').value || '').trim();
+            const content = (document.getElementById('tmat-content').value || '').trim();
+            const fileInput = document.getElementById('tmat-file');
+
+            if (!title) return;
+
+            const newId = 'cm_' + Date.now();
+            let fileName = title.replace(/[^a-zA-Z0-9\u0400-\u04FF]+/g, '_') + '.txt';
+            if (fileInput.files && fileInput.files[0]) {
+                fileName = fileInput.files[0].name;
+                uploadedMaterialBlobUrls[newId] = URL.createObjectURL(fileInput.files[0]);
+            }
+
+            courseMaterials.unshift({
+                id: newId,
+                type,
+                subject,
+                className,
+                quarter,
+                title,
+                fileName,
+                content: content || `${title}\nFan: ${subject} • Sinf: ${className} • ${quarter}\nBiriktirilgan fayl: ${fileName}`,
+                date: new Date().toLocaleDateString('ru-RU')
+            });
+
+            document.getElementById('teacher-material-form').reset();
+            savePersistedData();
+            renderStudentMaterialsLibrary();
+            showToast(`✅ "${title}" yuklandi! O'quvchilar endi Fanlar bo'limidan ochib foydalanishi mumkin.`);
+        }
+
+        function setMaterialFilter(flt) {
+            currentMaterialFilter = flt;
+            document.querySelectorAll('.mflt-btn').forEach(btn => {
+                btn.className = 'mflt-btn px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-800 text-slate-300 shrink-0';
+            });
+            const map = {
+                'Barchasi': 'mflt-all',
+                'Choraklik ish reja': 'mflt-plan',
+                'Taqdimot': 'mflt-slide',
+                "Ma'ruza": 'mflt-lecture'
+            };
+            const activeBtn = document.getElementById(map[flt] || 'mflt-all');
+            if (activeBtn) activeBtn.className = 'mflt-btn px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-indigo-600 text-white shrink-0';
+            renderStudentMaterialsLibrary();
+        }
+
+        function renderStudentMaterialsLibrary() {
+            const listEl = document.getElementById('student-materials-list');
+            const badgeEl = document.getElementById('library-total-badge');
+            const quickEl = document.getElementById('quick-materials-count');
+            if (badgeEl) badgeEl.innerText = `${courseMaterials.length} ta fayl`;
+            if (quickEl) quickEl.innerText = `O'qituvchi yuklagan ${courseMaterials.length} ta material ochiq`;
+            if (!listEl) return;
+
+            const filtered = currentMaterialFilter === 'Barchasi'
+                ? courseMaterials
+                : courseMaterials.filter(m => m.type === currentMaterialFilter);
+
+            if (!filtered.length) {
+                listEl.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Bu turdagi material hali yuklanmagan.</p>';
+                return;
+            }
+
+            listEl.innerHTML = filtered.map(m => {
+                const badgeCls = m.type === 'Choraklik ish reja'
+                    ? 'bg-amber-500/20 text-amber-300'
+                    : m.type === 'Taqdimot'
+                    ? 'bg-purple-500/20 text-purple-300'
+                    : 'bg-emerald-500/20 text-emerald-300';
+                return `
+                    <div class="p-3 rounded-2xl bg-[#0e1424] border border-slate-800 space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold ${badgeCls}">${escapeHtml(m.type)}</span>
+                            <span class="text-[10px] text-slate-400">${escapeHtml(m.subject)} • ${escapeHtml(m.className)} • ${escapeHtml(m.quarter)}</span>
+                        </div>
+                        <h4 class="text-xs font-extrabold text-white leading-snug">${escapeHtml(m.title)}</h4>
+                        <div class="flex items-center gap-2 pt-1">
+                            <button type="button" onclick="openMaterialViewer('${m.id}')" class="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-extrabold">👁 Ochib o'qish</button>
+                            <button type="button" onclick="downloadMaterialById('${m.id}')" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold">📥 Yuklash</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openMaterialViewer(id) {
+            const m = courseMaterials.find(item => item.id === id);
+            if (!m) return;
+            activeMaterialId = id;
+            document.getElementById('mv-badge').innerText = m.type;
+            document.getElementById('mv-title').innerText = m.title;
+            document.getElementById('mv-meta').innerText = `${m.subject} • ${m.className} • ${m.quarter} • ${m.date}`;
+            document.getElementById('mv-body').innerText = m.content;
+            document.getElementById('material-viewer-modal').classList.remove('hidden');
+        }
+
+        function closeMaterialViewer() {
+            document.getElementById('material-viewer-modal').classList.add('hidden');
+            activeMaterialId = null;
+        }
+
+        function downloadActiveMaterial() {
+            if (activeMaterialId) downloadMaterialById(activeMaterialId);
+        }
+
+        function downloadMaterialById(id) {
+            const m = courseMaterials.find(item => item.id === id);
+            if (!m) return;
+            const a = document.createElement('a');
+            if (uploadedMaterialBlobUrls[m.id]) {
+                a.href = uploadedMaterialBlobUrls[m.id];
+            } else {
+                const blob = new Blob([`${m.title}\n${m.subject} | ${m.className} | ${m.quarter}\n\n${m.content}`], { type: 'text/plain;charset=utf-8' });
+                a.href = URL.createObjectURL(blob);
+            }
+            a.download = m.fileName || 'material.txt';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast(`📥 "${m.fileName}" yuklab olindi!`);
+        }
+
+        // =========================================================================
+        // 10 DAQIQALIK QR KOD VA JOYLASHUV SIMULYATORI
+        // =========================================================================
+        function setAttendanceSimState(state) {
+            attendanceSimState = state;
+            const clockEl = document.getElementById('live-big-clock');
+            const paraEl = document.getElementById('current-para-status');
+            const locBar = document.getElementById('location-status-bar');
+            const locDot = document.getElementById('loc-dot');
+            const locTitle = document.getElementById('loc-title');
+            const locCoords = document.getElementById('loc-coords');
+            const btnKirish = document.getElementById('btn-main-kirish');
+            const btnChiqish = document.getElementById('btn-main-chiqish');
+            const kirishSub = document.getElementById('kirish-btn-sub');
+            const chiqishSub = document.getElementById('chiqish-btn-sub');
+            const outBanner = document.getElementById('outside-warning-banner');
+            const simLabel = document.getElementById('sim-mode-label');
+
+            if (state === 'open_enter') {
+                simLabel.innerText = "08:50 Kirish ochiq (10 daq)";
+                clockEl.innerText = "08:50";
+                paraEl.innerText = "10' → 1-para";
+                locBar.className = "bg-[#101729] rounded-2xl p-3 border border-emerald-500/40 flex items-center justify-between";
+                locDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0";
+                locTitle.className = "text-xs font-bold text-emerald-400";
+                locTitle.innerText = "A-korpus ichida";
+                locCoords.innerText = "41.354334, 69.214239 • ±10m • 08:50:12 (#10)";
+                outBanner.classList.add('hidden');
+
+                btnKirish.className = "p-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-sky-500 text-white flex items-center space-x-3 text-left shadow-lg transition";
+                kirishSub.innerText = "19:59 (Ochiq)";
+                btnChiqish.className = "p-3.5 rounded-2xl bg-[#161e31] border border-slate-800 text-slate-400 flex items-center space-x-3 text-left transition";
+                chiqishSub.innerText = "10:20 da";
+            } else if (state === 'outside') {
+                simLabel.innerText = "Binodan 334m uzoqda";
+                clockEl.innerText = "08:55";
+                paraEl.innerText = "5' → 1-para";
+                locBar.className = "bg-[#1a1321] rounded-2xl p-3 border border-rose-500/40 flex items-center justify-between";
+                locDot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0";
+                locTitle.className = "text-xs font-bold text-rose-400";
+                locTitle.innerText = "A-korpus ichida emassiz";
+                locCoords.innerText = "Masofa: 334 m • Radius: 100 m";
+                outBanner.classList.remove('hidden');
+
+                btnKirish.className = "p-3.5 rounded-2xl bg-amber-950/60 border border-amber-500/40 text-amber-200 flex items-center space-x-3 text-left transition";
+                kirishSub.innerText = "Binoga yaqin keling";
+                btnChiqish.className = "p-3.5 rounded-2xl bg-[#161e31] border border-slate-800 text-slate-400 flex items-center space-x-3 text-left transition";
+                chiqishSub.innerText = "Darsdan so'ng";
+            } else if (state === 'open_exit') {
+                simLabel.innerText = "10:24 Chiqish ochiq (10 daq)";
+                clockEl.innerText = "10:24";
+                paraEl.innerText = "6' → 2-para";
+                locBar.className = "bg-[#101729] rounded-2xl p-3 border border-emerald-500/40 flex items-center justify-between";
+                locDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0";
+                locTitle.className = "text-xs font-bold text-emerald-400";
+                locTitle.innerText = "A-korpus ichida";
+                outBanner.classList.add('hidden');
+
+                btnKirish.className = "p-3.5 rounded-2xl bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white flex items-center space-x-3 text-left transition";
+                kirishSub.innerText = "2-para: 15:57";
+                btnChiqish.className = "p-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-sky-500 text-white flex items-center space-x-3 text-left shadow-lg transition";
+                chiqishSub.innerText = "05:42 (Ochiq)";
+            }
+        }
+
+        function handleAttendanceAction(type) {
+            if (attendanceSimState === 'outside') {
+                showToast("📍 A-korpus binosidan 334m uzoqdasiz! Kirish uchun maktab binosiga yaqinlashing.");
+                return;
+            }
+            if (type === 'chiqish' && attendanceSimState === 'open_enter') {
+                showToast("⏳ Chiqish tugmasi dars tugagach (10:20–10:30 oralig'ida) ochiladi!");
+                return;
+            }
+            pendingQrActionType = type;
+            document.getElementById('qr-poster-title').innerText = type === 'kirish' ? 'DARSGA KIRISH' : 'DARSDAN CHIQISH';
+            document.getElementById('qr-instruction-text').innerText = type === 'kirish'
+                ? "1-para kirish uchun A-202 xonadagi QR kodni skanerlang"
+                : "1-paradan chiqish (va 2-paraga avtomatik kirish) uchun QR kodni skanerlang";
+            document.getElementById('qr-scanner-modal').classList.remove('hidden');
+        }
+
+        function closeQrScannerModal() {
+            document.getElementById('qr-scanner-modal').classList.add('hidden');
+        }
+
+        function confirmQrScanSuccess() {
+            closeQrScannerModal();
+            if (pendingQrActionType === 'kirish') {
+                dailyLessons[0].kirishTime = '08:55';
+                document.getElementById('kirish-btn-sub').innerText = "08:55 ✓ Belgilandi";
+                renderScheduleLessons();
+                showToast("✅ 08:55 da 1-paraga kirish QR orqali tasdiqlandi!");
+            } else {
+                dailyLessons[0].kirishTime = dailyLessons[0].kirishTime || '08:55';
+                dailyLessons[0].chiqishTime = '10:24';
+                dailyLessons[1].kirishTime = '10:24';
+                renderScheduleLessons();
+                document.getElementById('lesson-rating-modal').classList.remove('hidden');
+            }
+        }
+
+        function openClassroomQrProjector() {
+            pendingQrActionType = 'kirish';
+            document.getElementById('qr-poster-title').innerText = '8-A SINF • KIRISH QR';
+            document.getElementById('qr-scanner-modal').classList.remove('hidden');
+        }
+
+        function selectStarRating(stars) {
+            showToast(`⭐ Darsga ${stars} yulduz baho tanlandi!`);
+        }
+
+        function submitLessonRating() {
+            closeLessonRatingModal();
+            showToast("✅ Bahoyingiz qabul qilindi! 1-paradan chiqish va 2-paraga kirish avtomatik belgilandi.");
+        }
+
+        function closeLessonRatingModal() {
+            document.getElementById('lesson-rating-modal').classList.add('hidden');
+        }
+
+        function openBlockedOverlay() {
+            document.getElementById('blocked-profile-overlay').classList.remove('hidden');
+        }
+
+        function closeBlockedOverlay() {
+            document.getElementById('blocked-profile-overlay').classList.add('hidden');
+        }
+
+        function refreshGpsStatus() {
+            showToast("🛰 GPS joylashuv yangilandi: A-korpus ichida (23m)");
+        }
+
+        // =========================================================================
+        // DARS JADVALI, DAVOMAT MATRITSASI VA FANLARNI CHIZISH
+        // =========================================================================
+        function renderScheduleDays() {
+            const container = document.getElementById('schedule-days-strip');
+            container.innerHTML = SCHEDULE_DAYS.map((d, idx) => `
+                <button type="button" onclick="selectScheduleDay(${idx})" class="py-2.5 rounded-2xl flex flex-col items-center justify-center transition ${d.active ? 'bg-indigo-600 text-white shadow-lg' : 'bg-cardBg text-slate-300 border border-slate-800/80'}">
+                    <span class="text-[10px] font-bold uppercase opacity-80">${d.day}</span>
+                    <span class="text-sm font-extrabold mt-0.5">${d.date}</span>
+                    <span class="w-1.5 h-1.5 rounded-full mt-1 ${d.dot ? 'bg-emerald-400' : 'bg-transparent'}"></span>
+                </button>
+            `).join('');
+        }
+
+        function selectScheduleDay(index) {
+            SCHEDULE_DAYS.forEach((d, i) => d.active = (i === index));
+            document.getElementById('schedule-selected-date-label').innerText = SCHEDULE_DAYS[index].fullDate;
+            renderScheduleDays();
+            showToast(`📅 ${SCHEDULE_DAYS[index].fullDate} kungi dars jadvali yuklandi`);
+        }
+
+        function renderScheduleLessons() {
+            const container = document.getElementById('schedule-lessons-container');
+            container.innerHTML = dailyLessons.map((item, idx) => {
+                const hasEntered = Boolean(item.kirishTime);
+                const hasExited = Boolean(item.chiqishTime);
+                return `
+                    <div class="bg-cardBg border ${idx === 0 ? 'border-indigo-500/50' : 'border-slate-800/90'} rounded-[24px] p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2.5">
+                                <span class="px-3 py-1 rounded-xl bg-indigo-500/20 text-indigo-300 text-xs font-extrabold">${item.para}</span>
+                                <span class="text-sm font-extrabold text-white">${item.time}</span>
+                            </div>
+                            ${idx === 0 ? '<span class="px-2.5 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-bold">Hozir</span>' : ''}
+                        </div>
+
+                        <h4 class="text-sm font-extrabold text-white leading-snug">${item.title}</h4>
+
+                        <div class="space-y-1 text-xs text-slate-400">
+                            <div class="flex items-center space-x-2"><i class="fa-solid fa-chalkboard-user w-4 text-slate-500"></i><span>${item.teacher}</span></div>
+                            <div class="flex items-center space-x-2"><i class="fa-solid fa-location-dot w-4 text-slate-500"></i><span>${item.room}</span></div>
+                            <div class="flex items-start space-x-2"><i class="fa-solid fa-book w-4 text-slate-500 mt-0.5"></i><span class="line-clamp-2">${item.topic}</span></div>
+                        </div>
+
+                        ${hasEntered ? `
+                            <div class="grid grid-cols-2 gap-2 pt-1">
+                                <div class="p-2.5 rounded-xl bg-[#0e1424] border border-emerald-500/30">
+                                    <span class="text-[10px] text-slate-400 block">📥 Kirish</span>
+                                    <span class="text-base font-extrabold text-white font-mono">${item.kirishTime}</span>
+                                    <span class="text-[10px] text-emerald-400 font-bold block">✓ Belgilandi</span>
+                                </div>
+                                <div class="p-2.5 rounded-xl bg-[#0e1424] border ${hasExited ? 'border-emerald-500/30' : 'border-slate-800'}">
+                                    <span class="text-[10px] text-slate-400 block">📤 Chiqish</span>
+                                    <span class="text-base font-extrabold text-white font-mono">${hasExited ? item.chiqishTime : '—'}</span>
+                                    <span class="text-[10px] ${hasExited ? 'text-emerald-400 font-bold' : 'text-slate-400'} block">${hasExited ? '✓ Belgilandi' : '10:20 dan keyin'}</span>
+                                </div>
+                            </div>
+                            ${hasExited ? '<div class="text-xs font-bold text-emerald-400"><i class="fa-solid fa-check-double mr-1"></i>Darsda to\'liq qatnashdingiz</div>' : ''}
+                        ` : `
+                            <div class="p-3 rounded-2xl bg-[#0c111d] border border-slate-800/90 flex items-center space-x-2.5 text-xs text-slate-300">
+                                <i class="fa-regular fa-clock text-slate-400"></i>
+                                <span>${item.openHint}</span>
+                            </div>
+                        `}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderWeeklyAttendanceMatrix() {
+            const weeks = [
+                { label: '02–07.11', days: ['ok', 'ok', 'ok', 'ok', 'ok', 'off'] },
+                { label: '09–14.11', days: ['ok', 'ok', 'missed', 'ok', 'ok', 'off'] },
+                { label: '16–21.11', days: ['ok', 'ok', 'pending', 'pending', 'pending', 'off'] }
+            ];
+            const container = document.getElementById('weekly-matrix-rows');
+            container.innerHTML = weeks.map(w => `
+                <div class="flex items-center space-x-2">
+                    <span class="text-[11px] font-mono text-slate-400 w-14 shrink-0">${w.label}</span>
+                    <div class="grid grid-cols-6 gap-1.5 flex-1">
+                        ${w.days.map(status => {
+                            if (status === 'ok') {
+                                return `<div class="h-10 rounded-xl bg-[#0c111d] border border-slate-800 flex items-center justify-center space-x-1 px-1">
+                                    <span class="w-1.5 h-6 rounded-full bg-blue-500"></span>
+                                    <span class="w-1.5 h-6 rounded-full bg-blue-500"></span>
+                                    <span class="w-1.5 h-6 rounded-full bg-blue-500"></span>
+                                </div>`;
+                            } else if (status === 'missed') {
+                                return `<div onclick="showToast('11-noyabr: 3 para (6 soat) dars qoldirilgan')" class="h-10 rounded-xl bg-[#1a1118] border border-rose-500/40 flex items-center justify-center space-x-1 px-1 cursor-pointer">
+                                    <span class="w-1.5 h-6 rounded-full bg-rose-500"></span>
+                                    <span class="w-1.5 h-6 rounded-full bg-rose-500"></span>
+                                    <span class="w-1.5 h-6 rounded-full bg-rose-500"></span>
+                                </div>`;
+                            } else if (status === 'pending') {
+                                return `<div class="h-10 rounded-xl bg-[#0c111d] border border-slate-800/80 flex items-center justify-center space-x-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                                </div>`;
+                            } else {
+                                return `<div class="h-10 rounded-xl border border-dashed border-slate-800"></div>`;
+                            }
+                        }).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderFanlarModules() {
+            const mod1 = [
+                { code: '1.1', name: "Fizika: Elektr zanjirlari va PhET laboratoriya mashg'ulotlari", lessons: '4 / 4 dars', pct: '100%', grade: '5 baho' },
+                { code: '1.2', name: "Matematika: Algebraik tenglamalar va funksiyalar tahlili", lessons: '2 / 2 dars', pct: '100%', grade: '5 baho' },
+                { code: '1.3', name: "Informatika va sun'iy intellekt asoslari", lessons: '2 / 2 dars', pct: '100%', grade: '5 baho' },
+                { code: '1.4', name: "Ta'limda inklyuziya va ehtiyojlarga asoslangan diferentsial yondashuv", lessons: '2 / 2 dars', pct: '100%', grade: '5 baho' }
+            ];
+            const mod2 = [
+                { code: '2.1', name: "Zamonaviy ta'lim paradigmalari (PISA, TIMSS, PIRLS)", lessons: '3 / 3 dars', pct: '100%', grade: '5 baho' },
+                { code: '2.2', name: "Ingliz tili (IELTS Academic Reading & Listening)", lessons: '4 / 4 dars', pct: '92%', grade: '5 baho' }
+            ];
+
+            const renderItem = (item) => `
+                <div onclick="showToast('${item.name}: Joriy chorak bahosi ${item.grade}')" class="p-4 hover:bg-cardInner cursor-pointer transition space-y-2">
+                    <div class="flex items-start justify-between space-x-3">
+                        <div class="flex items-start space-x-3">
+                            <span class="px-2.5 py-1 rounded-xl bg-[#1e2640] text-indigo-300 text-xs font-extrabold shrink-0">${item.code}</span>
+                            <h4 class="text-xs font-bold text-white leading-relaxed">${item.name}</h4>
+                        </div>
+                        <div class="flex items-center space-x-1.5 shrink-0">
+                            <span class="text-xs font-extrabold text-indigo-400">${item.pct}</span>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+                        </div>
+                    </div>
+                    <div class="pl-11 space-y-1.5">
+                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-500 rounded-full" style="width: ${item.pct}"></div>
+                        </div>
+                        <div class="flex justify-between text-[11px] text-slate-400">
+                            <span>${item.lessons}</span>
+                            <span class="text-emerald-400 font-bold">★ ${item.grade}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('fanlar-module-1').innerHTML = mod1.map(renderItem).join('');
+            document.getElementById('fanlar-module-2').innerHTML = mod2.map(renderItem).join('');
+        }
+
+        // =========================================================================
+        // OTA-ONA VA O'QITUVCHI ROSTERI
+        // =========================================================================
+        function renderParentChildSwitcherBar() {
+            const bar = document.getElementById('parent-child-switcher');
+            const children = studentsDatabase.filter(s => parentSelectedChildIds.includes(s.id));
+            const list = children.length ? children : [studentsDatabase[0]];
+            bar.innerHTML = list.map(ch => `
+                <button type="button" onclick="switchActiveParentChild('${ch.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-2 shrink-0 transition ${activeParentChildId === ch.id ? 'bg-purple-600 text-white' : 'bg-cardBg text-slate-300 border border-slate-800'}">
+                    <img src="${ch.avatar}" class="w-5 h-5 rounded-full object-cover">
+                    <span>${escapeHtml(ch.fullName.split(' ')[0])} (${escapeHtml(ch.className)})</span>
+                </button>
+            `).join('');
+        }
+
+        function switchActiveParentChild(id) {
+            activeParentChildId = id;
+            renderParentChildSwitcherBar();
+            updateParentDashboardChild();
+        }
+
+        function updateParentDashboardChild() {
+            const ch = studentsDatabase.find(s => s.id === activeParentChildId) || studentsDatabase[0];
+            document.getElementById('header-avatar').src = ch.avatar;
+            document.getElementById('header-name').innerText = `Ota-ona (${ch.fullName.split(' ')[0]})`;
+            document.getElementById('header-sub').innerText = `Farzand: ${ch.className} sinf • Davomat ${ch.attendancePct}%`;
+            document.getElementById('parent-view-child-avatar').src = ch.avatar;
+            document.getElementById('parent-view-child-name').innerText = ch.fullName;
+            document.getElementById('parent-view-child-class').innerText = `${ch.className} sinf • JSHSHIR: ${ch.jshshir}`;
+        }
+
+        function simulateParentMissedAlert() {
+            const ch = studentsDatabase.find(s => s.id === activeParentChildId) || studentsDatabase[0];
+            const box = document.getElementById('parent-notifications-list');
+            const alertHtml = `
+                <div class="p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-slate-100 step-animate">
+                    <div class="flex justify-between text-[10px] text-rose-400 font-extrabold mb-1">
+                        <span>⚠️ DIQQAT: Dars qoldirildi (QR skanerlanmadi)</span>
+                        <span>Hozirgina</span>
+                    </div>
+                    Hurmatli ota-ona! Farzandingiz <strong>${escapeHtml(ch.fullName)}</strong> (${escapeHtml(ch.className)}) bugun soat 10:30 dagi 2-paraga 10 daqiqa ichida QR kodni skaner qilmadi.
+                </div>
+            `;
+            box.insertAdjacentHTML('afterbegin', alertHtml);
+            showToast(`⚠️ Ota-ona Telegramiga "${ch.fullName} darsga kelmadi" xabarnomasi yuborildi!`);
+        }
+
+        function renderTeacherRoster() {
+            const container = document.getElementById('teacher-roster-list');
+            const badge = document.getElementById('teacher-total-students-badge');
+            if (badge) badge.innerText = `${studentsDatabase.length} o'quvchi`;
+            if (!container) return;
+            container.innerHTML = studentsDatabase.map(st => `
+                <div class="p-3 rounded-2xl bg-[#0e1424] border border-slate-800 space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-2.5 min-w-0">
+                            <img src="${st.avatar}" class="w-9 h-9 rounded-xl object-cover shrink-0">
+                            <div class="min-w-0">
+                                <h5 class="text-xs font-bold text-white truncate">${escapeHtml(st.fullName)}</h5>
+                                <p class="text-[10px] text-slate-400 font-mono">${escapeHtml(st.className)} • TG: ${escapeHtml(st.studentTg || '—')} / ${escapeHtml(st.parentTg || '—')}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-5 gap-1.5">
+                        <button type="button" onclick="gradeStudentAndNotify('${st.id}', '5')" class="py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-extrabold text-xs">5</button>
+                        <button type="button" onclick="gradeStudentAndNotify('${st.id}', '4')" class="py-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 font-extrabold text-xs">4</button>
+                        <button type="button" onclick="gradeStudentAndNotify('${st.id}', '3')" class="py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-extrabold text-xs">3</button>
+                        <button type="button" onclick="gradeStudentAndNotify('${st.id}', '2')" class="py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-extrabold text-xs">2</button>
+                        <button type="button" onclick="gradeStudentAndNotify('${st.id}', 'NB')" class="py-1.5 rounded-lg bg-slate-800 hover:bg-rose-600/30 text-rose-300 font-bold text-[10px]">NB</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // =========================================================================
+        // AVLONIY AI SUHBATDOSHI VA FAYL YUKLASH
+        // =========================================================================
+        function askAiAssistant(topic) {
+            const chat = document.getElementById('ai-chat-messages');
+            let reply = "";
+            if (topic.includes('Umumiy')) {
+                reply = "📊 <strong>Umumiy holatingiz:</strong> Ishtirok ko'rsatkichingiz <strong>92%</strong> (66 soat qatnashgan, 6 soat qoldirilgan). Profil bloklanish chegarasigacha yana 12 soat bor.";
+            } else if (topic.includes('Bugungi')) {
+                reply = "📅 <strong>Bugungi darslar (18-noyabr):</strong><br>1-para (09:00): Zamonaviy ta'lim paradigmalari (A-202)<br>2-para (10:30): Amaliy laboratoriya tajribalari (A-202)<br>3-para (12:00): Laboratoriya xavfsizligi (A-202).";
+            } else if (topic.includes('Hozirgi')) {
+                reply = "⏰ <strong>Hozirgi para:</strong> 1-para (09:00–10:20), A-korpus 202-xona. Kirish QR kodi dars boshlanishidan 10 daqiqa oldin (08:50 da) ochiladi.";
+            } else if (topic.includes('Ishtirok')) {
+                reply = "✅ Siz jami 72 soatdan 66 soatida qatnashgansiz (92%). Chorak oxiridagi 1 haftalik oynada 6 soat qoldirilgan darsni elektron qayta topshirib yopishingiz mumkin.";
+            } else if (topic.includes('Fanlar')) {
+                reply = `📚 <strong>Fanlar va materiallar:</strong> Hozir kutubxonada ${courseMaterials.length} ta choraklik ish reja, taqdimot va ma'ruza ochiq. Fanlar bo'limidan istalgan payt ochishingiz mumkin.`;
+            } else {
+                reply = "🎓 <strong>Malaka ishi va qayta topshirish:</strong> Mavzu tanlangan. Fayl yuklash 22.11.2026 gacha ochiq. «Malakam» bo'limidan elektron fayl yuklashingiz mumkin.";
+            }
+
+            chat.insertAdjacentHTML('beforeend', `
+                <div class="flex justify-end">
+                    <div class="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-3.5 py-2 text-xs font-bold max-w-[80%]">${escapeHtml(topic)}</div>
+                </div>
+                <div class="bg-cardBg border border-slate-800 rounded-2xl rounded-tl-sm p-3.5 text-xs text-slate-200 leading-relaxed">${reply}</div>
+            `);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function sendCustomAiQuestion() {
+            const input = document.getElementById('ai-user-input');
+            const val = (input.value || '').trim();
+            if (!val) return;
+            input.value = '';
+            askAiAssistant(val);
+        }
+
+        function handleElectronicFileUpload(input) {
+            const fileName = input.files && input.files[0] ? input.files[0].name : "Qayta_topshirish_vazifasi.pdf";
+            const list = document.getElementById('uploaded-files-list');
+            list.insertAdjacentHTML('beforeend', `
+                <div class="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs step-animate">
+                    <span class="font-bold text-emerald-300"><i class="fa-solid fa-file-circle-check mr-1.5"></i>${escapeHtml(fileName)}</span>
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">Yuklandi ✓</span>
+                </div>
+            `);
+            showToast(`📂 "${fileName}" muvaffaqiyatli yuklandi va o'qituvchiga tekshirish uchun yuborildi!`);
+        }
+
+        function openMezonlarModal() {
+            showToast("📋 Baholash mezonlari: Dolzarblik (20 ball), PhET simulyatsiya (30 ball), Taqdimot va himoya (50 ball). Jami: 100 ball.");
+        }
+
+        // =========================================================================
+        // ADMIN PANEL FUNKSIYALARI
+        // =========================================================================
+        function openAdminPinModal() {
+            document.getElementById('admin-pin-input').value = '';
+            document.getElementById('admin-pin-modal').classList.remove('hidden');
+            document.getElementById('admin-auth-box').classList.remove('hidden');
+            document.getElementById('admin-workspace-box').classList.add('hidden');
+        }
+
+        function closeAdminPinModal() {
+            document.getElementById('admin-pin-modal').classList.add('hidden');
+        }
+
+        function unlockAdminWorkspace() {
+            const pin = document.getElementById('admin-pin-input').value;
+            if (pin === '2026') {
+                document.getElementById('admin-auth-box').classList.add('hidden');
+                document.getElementById('admin-workspace-box').classList.remove('hidden');
+                showToast("🔓 Admin panel ochildi!");
+            } else {
+                showToast("❌ PIN-kod noto'g'ri! Qaytadan urinib ko'ring.");
+            }
+        }
+
+        function adminAddStudentToDb() {
+            const cls = document.getElementById('admin-new-class').value;
+            const name = (document.getElementById('admin-new-name').value || '').trim();
+            const jsh = (document.getElementById('admin-new-jshshir').value || '').trim();
+            const stTg = (document.getElementById('admin-new-st-tg').value || '').trim();
+            const prTg = (document.getElementById('admin-new-pr-tg').value || '').trim();
+            if (!name || jsh.length < 14) {
+                showToast("Iltimos, o'quvchi F.I.Sh. va 14 xonali JSHSHIR raqamini to'liq kiriting!");
+                return;
+            }
+            const newSt = {
+                id: 'st_' + Date.now(),
+                className: cls,
+                fullName: name,
+                jshshir: jsh,
+                birthDate: '2011-08-20',
+                avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&auto=format&fit=crop&q=80',
+                attendancePct: 100,
+                attendedHours: 72,
+                missedHours: 0,
+                todayEntry: '08:50',
+                grade: 5,
+                studentTg: stTg,
+                parentTg: prTg
+            };
+            studentsDatabase.unshift(newSt);
+            selectedStudentClass = cls;
+            currentMatchedStudent = newSt;
+            document.getElementById('admin-new-name').value = '';
+            document.getElementById('admin-new-jshshir').value = '';
+            document.getElementById('admin-new-st-tg').value = '';
+            document.getElementById('admin-new-pr-tg').value = '';
+            savePersistedData();
+            renderTeacherRoster();
+            showToast(`✅ ${name} (${cls}) bazaga qo'shildi!`);
+            closeAdminPinModal();
+        }
+
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('hidden');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => t.classList.add('hidden'), 3200);
+        }
+    </script>
+</body>
+</html>
